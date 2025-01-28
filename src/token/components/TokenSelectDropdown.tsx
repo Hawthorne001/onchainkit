@@ -1,5 +1,8 @@
+'use client';
+
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { background, cn } from '../../styles/theme';
+import { useTheme } from '../../internal/hooks/useTheme';
+import { background, border, cn } from '../../styles/theme';
 import type { TokenSelectDropdownReact } from '../types';
 import { TokenRow } from './TokenRow';
 import { TokenSelectButton } from './TokenSelectButton';
@@ -9,6 +12,8 @@ export function TokenSelectDropdown({
   setToken,
   token,
 }: TokenSelectDropdownReact) {
+  const componentTheme = useTheme();
+
   const [isOpen, setIsOpen] = useState(false);
 
   const handleToggle = useCallback(() => {
@@ -18,7 +23,7 @@ export function TokenSelectDropdown({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  /* istanbul ignore next */
+  /* v8 ignore next 11 */
   const handleBlur = useCallback((event: MouseEvent) => {
     const isOutsideDropdown =
       dropdownRef.current &&
@@ -44,7 +49,7 @@ export function TokenSelectDropdown({
   }, [handleBlur]);
 
   return (
-    <div className="relative shrink-0">
+    <div className="relative max-w-fit shrink-0">
       <TokenSelectButton
         ref={buttonRef}
         onClick={handleToggle}
@@ -56,7 +61,9 @@ export function TokenSelectDropdown({
           ref={dropdownRef}
           data-testid="ockTokenSelectDropdown_List"
           className={cn(
-            'absolute right-0 z-10 mt-1 flex max-h-80 w-fit flex-col overflow-y-hidden rounded-lg',
+            componentTheme,
+            border.radius,
+            'absolute right-0 z-10 mt-1 flex max-h-80 w-[200px] flex-col overflow-y-hidden',
             'ock-scrollbar',
           )}
         >

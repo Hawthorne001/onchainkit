@@ -1,19 +1,19 @@
 import { base, baseSepolia, mainnet, optimism } from 'viem/chains';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { publicClient } from '../../network/client';
-import { getChainPublicClient } from '../../network/getChainPublicClient';
+import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import { publicClient } from '../../core/network/client';
+import { getChainPublicClient } from '../../core/network/getChainPublicClient';
 import { RESOLVER_ADDRESSES_BY_CHAIN_ID } from '../constants';
 import { getAvatar } from './getAvatar';
 
-vi.mock('../../network/client');
+vi.mock('@/core/network/client');
 
-vi.mock('../../network/getChainPublicClient', () => ({
-  ...vi.importActual('../../network/getChainPublicClient'),
+vi.mock('@/core/network/getChainPublicClient', () => ({
+  ...vi.importActual('@/core/network/getChainPublicClient'),
   getChainPublicClient: vi.fn(() => publicClient),
 }));
 
 describe('getAvatar', () => {
-  const mockGetEnsAvatar = publicClient.getEnsAvatar as vi.Mock;
+  const mockGetEnsAvatar = publicClient.getEnsAvatar as Mock;
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -111,6 +111,116 @@ describe('getAvatar', () => {
     const avatarUrl = await getAvatar({ ensName, chain: baseSepolia });
 
     expect(avatarUrl).toBe(expectedMainnetAvatarUrl);
+    expect(mockGetEnsAvatar).toHaveBeenNthCalledWith(1, {
+      name: ensName,
+      universalResolverAddress: RESOLVER_ADDRESSES_BY_CHAIN_ID[baseSepolia.id],
+    });
+    expect(getChainPublicClient).toHaveBeenNthCalledWith(1, baseSepolia);
+
+    // getAvatar defaulted to mainnet
+    expect(mockGetEnsAvatar).toHaveBeenNthCalledWith(2, {
+      name: ensName,
+      universalResolverAddress: undefined,
+    });
+    expect(getChainPublicClient).toHaveBeenNthCalledWith(2, mainnet);
+  });
+
+  it('should use default base avatar when both mainnet and base mainnet avatar are not available', async () => {
+    const ensName = 'shrek.base.eth';
+    const expectedBaseAvatarUrl = null;
+    const expectedMainnetAvatarUrl = null;
+
+    mockGetEnsAvatar
+      .mockResolvedValueOnce(expectedBaseAvatarUrl)
+      .mockResolvedValueOnce(expectedMainnetAvatarUrl);
+
+    const avatarUrl = await getAvatar({ ensName, chain: base });
+
+    const avatarUrlIsUriData = avatarUrl?.startsWith(
+      'data:image/svg+xml;base64',
+    );
+    expect(avatarUrlIsUriData).toBe(true);
+    expect(mockGetEnsAvatar).toHaveBeenNthCalledWith(1, {
+      name: ensName,
+      universalResolverAddress: RESOLVER_ADDRESSES_BY_CHAIN_ID[base.id],
+    });
+    expect(getChainPublicClient).toHaveBeenNthCalledWith(1, base);
+
+    // getAvatar defaulted to mainnet
+    expect(mockGetEnsAvatar).toHaveBeenNthCalledWith(2, {
+      name: ensName,
+      universalResolverAddress: undefined,
+    });
+    expect(getChainPublicClient).toHaveBeenNthCalledWith(2, mainnet);
+  });
+
+  it('should use default base avatar when both mainnet and base sepolia avatar are not available', async () => {
+    const ensName = 'shrek.basetest.eth';
+    const expectedBaseAvatarUrl = null;
+    const expectedMainnetAvatarUrl = null;
+
+    mockGetEnsAvatar
+      .mockResolvedValueOnce(expectedBaseAvatarUrl)
+      .mockResolvedValueOnce(expectedMainnetAvatarUrl);
+
+    const avatarUrl = await getAvatar({ ensName, chain: baseSepolia });
+
+    const avatarUrlIsUriData = avatarUrl?.startsWith(
+      'data:image/svg+xml;base64',
+    );
+    expect(avatarUrlIsUriData).toBe(true);
+    expect(mockGetEnsAvatar).toHaveBeenNthCalledWith(1, {
+      name: ensName,
+      universalResolverAddress: RESOLVER_ADDRESSES_BY_CHAIN_ID[baseSepolia.id],
+    });
+    expect(getChainPublicClient).toHaveBeenNthCalledWith(1, baseSepolia);
+
+    // getAvatar defaulted to mainnet
+    expect(mockGetEnsAvatar).toHaveBeenNthCalledWith(2, {
+      name: ensName,
+      universalResolverAddress: undefined,
+    });
+    expect(getChainPublicClient).toHaveBeenNthCalledWith(2, mainnet);
+  });
+
+  it('should never default base avatar for non-basename', async () => {
+    const ensName = 'ethereummainnetname.eth';
+    const expectedBaseAvatarUrl = null;
+    const expectedMainnetAvatarUrl = null;
+
+    mockGetEnsAvatar
+      .mockResolvedValueOnce(expectedBaseAvatarUrl)
+      .mockResolvedValueOnce(expectedMainnetAvatarUrl);
+
+    const avatarUrl = await getAvatar({ ensName, chain: base });
+
+    expect(avatarUrl).toBe(null);
+    expect(mockGetEnsAvatar).toHaveBeenNthCalledWith(1, {
+      name: ensName,
+      universalResolverAddress: RESOLVER_ADDRESSES_BY_CHAIN_ID[base.id],
+    });
+    expect(getChainPublicClient).toHaveBeenNthCalledWith(1, base);
+
+    // getAvatar defaulted to mainnet
+    expect(mockGetEnsAvatar).toHaveBeenNthCalledWith(2, {
+      name: ensName,
+      universalResolverAddress: undefined,
+    });
+    expect(getChainPublicClient).toHaveBeenNthCalledWith(2, mainnet);
+  });
+
+  it('should never default base avatar for non-basename', async () => {
+    const ensName = 'ethereummainnetname.eth';
+    const expectedBaseAvatarUrl = null;
+    const expectedMainnetAvatarUrl = null;
+
+    mockGetEnsAvatar
+      .mockResolvedValueOnce(expectedBaseAvatarUrl)
+      .mockResolvedValueOnce(expectedMainnetAvatarUrl);
+
+    const avatarUrl = await getAvatar({ ensName, chain: baseSepolia });
+
+    expect(avatarUrl).toBe(null);
     expect(mockGetEnsAvatar).toHaveBeenNthCalledWith(1, {
       name: ensName,
       universalResolverAddress: RESOLVER_ADDRESSES_BY_CHAIN_ID[baseSepolia.id],

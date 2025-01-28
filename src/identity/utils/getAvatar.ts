@@ -1,10 +1,16 @@
+import { getChainPublicClient } from '@/core/network/getChainPublicClient';
+import { isBase } from '@/core/utils/isBase';
+import { isEthereum } from '@/core/utils/isEthereum';
+import type {
+  Basename,
+  GetAvatar,
+  GetAvatarReturnType,
+} from '@/identity/types';
 import { mainnet } from 'viem/chains';
 import { normalize } from 'viem/ens';
-import { isBase } from '../../isBase';
-import { isEthereum } from '../../isEthereum';
-import { getChainPublicClient } from '../../network/getChainPublicClient';
 import { RESOLVER_ADDRESSES_BY_CHAIN_ID } from '../constants';
-import type { GetAvatar, GetAvatarReturnType } from '../types';
+import { getBaseDefaultProfilePicture } from './getBaseDefaultProfilePicture';
+import { isBasename } from './isBasename';
 
 /**
  * An asynchronous function to fetch the Ethereum Name Service (ENS)
@@ -18,6 +24,7 @@ export const getAvatar = async ({
   const chainIsBase = isBase({ chainId: chain.id });
   const chainIsEthereum = isEthereum({ chainId: chain.id });
   const chainSupportsUniversalResolver = chainIsEthereum || chainIsBase;
+  const usernameIsBasename = isBasename(ensName);
 
   if (!chainSupportsUniversalResolver) {
     return Promise.reject(
@@ -26,10 +33,12 @@ export const getAvatar = async ({
   }
 
   let client = getChainPublicClient(chain);
+  let baseEnsAvatar = null;
 
+  // 1. Try basename
   if (chainIsBase) {
     try {
-      const baseEnsAvatar = await client.getEnsAvatar({
+      baseEnsAvatar = await client.getEnsAvatar({
         name: normalize(ensName),
         universalResolverAddress: RESOLVER_ADDRESSES_BY_CHAIN_ID[chain.id],
       });
@@ -42,9 +51,21 @@ export const getAvatar = async ({
     }
   }
 
-  // Default to mainnet
+  // 2. Defaults to mainnet
   client = getChainPublicClient(mainnet);
-  return await client.getEnsAvatar({
+  const mainnetEnsAvatar = await client.getEnsAvatar({
     name: normalize(ensName),
   });
+
+  if (mainnetEnsAvatar) {
+    return mainnetEnsAvatar;
+  }
+
+  // 3. If username is a Basename (.base.eth / .basetest.eth), use default Basename avatars
+  if (usernameIsBasename) {
+    return getBaseDefaultProfilePicture(ensName as Basename);
+  }
+
+  // 4. No avatars to display
+  return null;
 };

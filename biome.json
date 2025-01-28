@@ -84,9 +84,7 @@
       "coverage",
       "dist",
       "esm",
-      "framegear",
-      "playground",
-      "site"
+      "create-onchain"
     ]
   }
 }

@@ -1,11 +1,13 @@
+'use client';
+import { useIdentityContext } from '@/identity/components/IdentityProvider';
+import { useName } from '@/identity/hooks/useName';
+import type { NameReact } from '@/identity/types';
+import { getSlicedAddress } from '@/identity/utils/getSlicedAddress';
+import { findComponent } from '@/internal/utils/findComponent';
 import { Children, useMemo } from 'react';
-import { cn, text } from '../../styles/theme';
-import { useName } from '../hooks/useName';
-import type { NameReact } from '../types';
-import { getSlicedAddress } from '../utils/getSlicedAddress';
+import { cn, color, text } from '../../styles/theme';
 import { Badge } from './Badge';
 import { DisplayBadge } from './DisplayBadge';
-import { useIdentityContext } from './IdentityProvider';
 
 /**
  * Name is a React component that renders the user name from an Ethereum address.
@@ -19,9 +21,10 @@ export function Name({
 }: NameReact) {
   const { address: contextAddress, chain: contextChain } = useIdentityContext();
   if (!contextAddress && !address) {
-    throw new Error(
+    console.error(
       'Name: an Ethereum address must be provided to the Identity or Name component.',
     );
+    return null;
   }
 
   const accountAddress = address ?? contextAddress;
@@ -33,9 +36,7 @@ export function Name({
   });
 
   const badge = useMemo(() => {
-    // @ts-ignore
-    // istanbul ignore next
-    return Children.toArray(children).find(({ type }) => type === Badge);
+    return Children.toArray(children).find(findComponent(Badge));
   }, [children]);
 
   if (isLoading) {
@@ -46,7 +47,7 @@ export function Name({
     <div className="flex items-center gap-1">
       <span
         data-testid="ockIdentity_Text"
-        className={cn(text.headline, className)}
+        className={cn(text.headline, color.foreground, className)}
         {...props}
       >
         {name || getSlicedAddress(accountAddress)}

@@ -1,22 +1,27 @@
-import { cn, text } from '../../styles/theme';
+'use client';
+import { cn, color, text } from '../../styles/theme';
 import type { SwapMessageReact } from '../types';
 import { getSwapMessage } from '../utils/getSwapMessage';
 import { useSwapContext } from './SwapProvider';
 
 export function SwapMessage({ className }: SwapMessageReact) {
-  const { to, from, error, loading, isTransactionPending } = useSwapContext();
+  const { address, to, from, lifecycleStatus } = useSwapContext();
 
   const message = getSwapMessage({
-    error,
+    address,
     from,
-    loading,
-    isTransactionPending,
+    lifecycleStatus,
     to,
   });
 
   return (
     <div
-      className={cn('flex pt-2', text.label2, className)}
+      className={cn(
+        'flex h-7 pt-2',
+        text.label2,
+        color.foregroundMuted,
+        className,
+      )}
       data-testid="ockSwapMessage_Message"
     >
       {message}

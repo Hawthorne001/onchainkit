@@ -6,10 +6,10 @@ The `isValidAAEntrypoint` utility is designed to verify the Account-Abstraction 
 
 :::code-group
 
-```tsx [code]
+```tsx twoslash [code]
 import { isValidAAEntrypoint } from '@coinbase/onchainkit/wallet';
 
-const AAImplementationAddress = '0x123`;
+const AAImplementationAddress = '0x123';
 const isValid = isValidAAEntrypoint({ entrypoint: AAImplementationAddress });
 
 if (isValid) {
@@ -31,4 +31,4 @@ true;
 
 ## Parameters
 
-[`isValidAAEntrypointtOptions`](/wallet/types#isvalidaaentrypointtoptions)
+[`isValidAAEntrypointOptions`](/wallet/types#isvalidaaentrypointoptions)

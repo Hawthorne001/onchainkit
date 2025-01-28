@@ -1,13 +1,15 @@
+'use client';
+import { useIdentityContext } from '@/identity/components/IdentityProvider';
+import { useAvatar } from '@/identity/hooks/useAvatar';
+import { useName } from '@/identity/hooks/useName';
+import type { AvatarReact } from '@/identity/types';
+import { findComponent } from '@/internal/utils/findComponent';
 import { Children, useMemo } from 'react';
 import { defaultAvatarSVG } from '../../internal/svg/defaultAvatarSVG';
 import { defaultLoadingSVG } from '../../internal/svg/defaultLoadingSVG';
-import { cn } from '../../styles/theme';
-import { useAvatar } from '../hooks/useAvatar';
-import { useName } from '../hooks/useName';
-import type { AvatarReact } from '../types';
+import { border, cn } from '../../styles/theme';
 import { Badge } from './Badge';
 import { DisplayBadge } from './DisplayBadge';
-import { useIdentityContext } from './IdentityProvider';
 
 /**
  * Represents an Avatar component that displays either a loading indicator,
@@ -29,9 +31,10 @@ export function Avatar({
   const accountChain = chain ?? contextChain;
 
   if (!accountAddress) {
-    throw new Error(
+    console.error(
       'Avatar: an Ethereum address must be provided to the Identity or Avatar component.',
     );
+    return null;
   }
 
   // The component first attempts to retrieve the ENS name and avatar for the given Ethereum address.
@@ -46,8 +49,7 @@ export function Avatar({
   );
 
   const badge = useMemo(() => {
-    // @ts-ignore
-    return Children.toArray(children).find(({ type }) => type === Badge);
+    return Children.toArray(children).find(findComponent(Badge));
   }, [children]);
 
   const defaultAvatar = defaultComponent || defaultAvatarSVG;
@@ -69,11 +71,12 @@ export function Avatar({
     <div className="relative">
       <div
         data-testid="ockAvatar_ImageContainer"
-        className={cn('h-8 w-8 overflow-hidden rounded-full', className)}
+        className={cn('h-10 w-10 overflow-hidden rounded-full', className)}
       >
         {/* biome-ignore lint: alt gets assigned */}
         {displayAvatarImg ? (
           <img
+            className="min-h-full min-w-full object-cover"
             data-testid="ockAvatar_Image"
             loading="lazy"
             width="100%"
@@ -84,11 +87,13 @@ export function Avatar({
             {...props}
           />
         ) : (
-          defaultAvatar
+          <div className={cn(border.default, 'h-full w-full border')}>
+            {defaultAvatar}
+          </div>
         )}
       </div>
       {badge && (
-        <DisplayBadge address={address ?? contextAddress}>
+        <DisplayBadge address={accountAddress}>
           <div
             data-testid="ockAvatar_BadgeContainer"
             className="-bottom-0.5 -right-0.5 absolute flex h-[15px] w-[15px] items-center justify-center rounded-full bg-transparent"

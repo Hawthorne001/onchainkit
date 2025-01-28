@@ -1,92 +1,73 @@
-import { Children, useMemo } from 'react';
+import { useTheme } from '@/internal/hooks/useTheme';
+import { findComponent } from '@/internal/utils/findComponent';
+import { background, cn, color } from '@/styles/theme';
+import { Children, cloneElement, useMemo } from 'react';
 import type { ReactNode } from 'react';
-import { findComponent } from '../../internal/utils/findComponent';
-import { background, cn, color, pressable } from '../../styles/theme';
-import { usePopover } from '../hooks/usePopover';
 import { Address } from './Address';
 import { Avatar } from './Avatar';
 import { EthBalance } from './EthBalance';
 import { Name } from './Name';
-
-// istanbul ignore next
-const noop = () => {};
+import { Socials } from './Socials';
 
 type IdentityLayoutReact = {
   children: ReactNode;
   className?: string;
-  onClick?: () => Promise<boolean>;
+  hasCopyAddressOnClick?: boolean;
 };
 
 export function IdentityLayout({
   children,
   className,
-  onClick,
+  hasCopyAddressOnClick,
 }: IdentityLayoutReact) {
-  const { avatar, name, address, ethBalance } = useMemo(() => {
+  const componentTheme = useTheme();
+
+  const {
+    avatar,
+    name,
+    address: addressComponent,
+    ethBalance,
+    socials,
+  } = useMemo(() => {
     const childrenArray = Children.toArray(children);
+    const addressElement = childrenArray.find(findComponent(Address));
     return {
       avatar: childrenArray.find(findComponent(Avatar)),
       name: childrenArray.find(findComponent(Name)),
-      address: childrenArray.find(findComponent(Address)),
+      address: addressElement
+        ? cloneElement(addressElement, { hasCopyAddressOnClick })
+        : undefined,
       ethBalance: childrenArray.find(findComponent(EthBalance)),
-    };
-  }, [children]);
-
-  const {
-    handleClick,
-    handleMouseEnter,
-    handleMouseLeave,
-    showPopover,
-    popoverText,
-  } = usePopover(onClick);
+      socials: childrenArray.find(findComponent(Socials)),
+    } as const;
+  }, [children, hasCopyAddressOnClick]);
 
   return (
     <div
       className={cn(
+        componentTheme,
         background.default,
-        'flex items-center space-x-4 px-4 py-1',
-        onClick && `${pressable.default} relative`,
+        'flex flex-col px-4 py-1',
         className,
       )}
       data-testid="ockIdentityLayout_container"
-      onClick={handleClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onKeyUp={noop}
-      onKeyDown={noop}
     >
-      {avatar}
-      <div className="flex flex-col">
-        {name}
-        {address && !ethBalance && address}
-        {!address && ethBalance && ethBalance}
-        {address && ethBalance && (
-          <div className="flex items-center gap-1">
-            {address}
-            <span className={color.foregroundMuted}>·</span>
-            {ethBalance}
-          </div>
-        )}
-      </div>
-      {showPopover && (
-        <div
-          className={cn(
-            background.inverse,
-            color.foreground,
-            'absolute top-[calc(100%_-_5px)] left-[46px] z-10 rounded px-2 py-1 shadow-[0px_4px_8px_rgba(0,0,0,0.1)]',
+      <div className="flex items-center space-x-3">
+        <div className="flex-shrink-0">{avatar}</div>
+        <div className="flex flex-col">
+          {name}
+          {addressComponent && !ethBalance && addressComponent}
+          {!addressComponent && ethBalance && ethBalance}
+          {addressComponent && ethBalance && (
+            <div className="flex items-center gap-1">
+              {addressComponent}
+              <span className={color.foregroundMuted}>·</span>
+              {ethBalance}
+            </div>
           )}
-          data-testid="ockIdentityLayout_copy"
-        >
-          {popoverText}
-          <div
-            className={cn(
-              'absolute top-[-5px] left-6 h-0 w-0',
-              'border-x-[5px] border-x-transparent border-b-[5px] border-b-[color:var(--bg-ock-inverse)] border-solid',
-            )}
-            data-testid="ockIdentityLayout_copyArrow"
-          />
         </div>
-      )}
+      </div>
+      {socials}
     </div>
   );
 }

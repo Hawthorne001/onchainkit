@@ -1,13 +1,8 @@
-import path from 'node:path';
-
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    './docs/**/*.{js,ts,jsx,tsx,md,mdx}',
-    path.join(path.dirname(require.resolve('@coinbase/onchainkit')), '**/*.js'),
-  ],
-  darkMode: 'class',
+  content: ['./docs/**/*.{js,ts,jsx,tsx,md,mdx}'],
   important: true,
+  darkMode: ['class'],
   safelist: ['dark'],
   theme: {
     fontFamily: {

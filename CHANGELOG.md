@@ -1,12 +1,540 @@
 # Changelog
 
+## 0.36.8
+
+### Patch Changes
+
+- **feat**: Add Popover UI Primitive. By @cpcramer #1849
+- **feat**: Added NFT data hooks. By @alessey #1838
+- **fix**: Made improvements to FundCard component. By @rustam-cb #1806 #1818 #1839
+- **fix**: Made improvements to WalletIsland component. By @brendan-cb #1842
+- **fix**: Made internal typesafety and efficiency improvements. By @dschlabach #1855 #1843
+- **fix**: Fixed typos in documentation and commments. By @youyyytrok @vipocenka #1840 #1841
+
+## 0.36.7
+
+### Patch Changes
+
+- **feat**: Implemented `FundCard` component by @rustam-cb #1718
+- **fix**: Updated client boundaries for `NFT`, `Wallet*`, and `WalletAdvanced*` components by @dschlabach #1809, #1810, #1821
+
+## 0.36.6
+
+### Patch Changes
+
+- **fix**: Fixed ConnectWallet handler bug by @brendan-defi #1814
+
+## 0.36.5
+
+### Patch Changes
+
+- **chore**: Removed Jest config files. By @cpcramer #1811
+- **docs**: Added Troubleshooting section. By @cpcramer #1803
+- **fix**: Updated NFT Mint Button for easier styling. By @alessey #1807
+- **fix**: Updated wallet modal to pass through app name and logo. By @alessey #1808
+- **fix**: Improved support for nextjs. By @dschlabach #1771
+- **feat**: Added advanced wallet options with draggable WalletIsland component. By @brendan-defi #1793
+
+## 0.36.4
+
+### Patch Changes
+
+- **feat**: Add Phantom Wallet connection support in `WalletModal`. By @cpcramer #1770
+- **docs**: Fixed typos in docs. By @mdqst @MarsonKotovi4 @zeevick10 @Pricstas #1774 #1784 #1788 #1791
+
+## 0.36.3
+
+### Patch Changes
+
+- **feat**: Added disabled prop to Buy component. @abcrane123 #1775
+
+## 0.36.2
+
+### Patch Changes
+
+- **docs**: Added auto logged in components on landing page. @cpcramer #1754
+- **feat**: Added Buy component. By @abcrane123. #1729
+- **fix**: Added support for React 19. By @dschlabach #1763
+- **fix**: Fixed Tailwind config. By @dschlabach #1750
+- **docs**: Made docs improvements. By @mdqst @0xwitty @cpcramer #1761 #1762 #1765
+- **feat**: Added `headerLeftContent` prop to `Swap` component. By @brennancabell #1752
+
+## 0.36.1
+
+### Patch Changes
+
+- **docs**: Updated `Identity` component preview. By @cpcramer #1717
+- **docs**: Updated `WalletModal` image size. By @cpcramer #1723
+- **chore**: Added animation to landing page. By @mindapivessa #1682
+- **dev**: Fixed test file type errors and set dev aliases. By @dschlabach @alessey #1720
+- **chore**: Updated WalletModal UI. By @cpcramer #1727
+- **feat**: Added tailwindcss-animate. By @alessey #1734
+- **fix**: Fixed onramp listener function bug. By @abcrane123 #1728
+- **docs**: Fixed typos in docs & README.md. By @Guayaba221 @vtjl10 @omahs @famouswizard @Olexandr88 @mdqst @dschlabach @detrina @Danyylka #1711 #1735 #1736 #1737 #1739 #1745 #1746 #1747 #1743 #1741
+- **feat**: Added SwapLite util functions. By @abcrane123 #1648
+- **refactor**: Migrated NFT components to new file structure. By @alessey #1714
+- **chore**: Renamed SwapLite utils to Buy utils. By @abcrane123 #1742
+- **feat**: Added QrCode component. By @brendan-defi #1731
+- **refactor**: Moved web utils to ui/react/internal/utils. By @dschlabach #1716
+- **feat**: Added Draggable component. By @brendan-defi #1730
+- **fix**: Fixed development alias. By @alessey #1749
+- **docs**: Remove redundant header in wallet docs. By @fakepixels #1678
+- **fix**: Fixed storybook. By @alessey #1753
+
+## 0.36.0
+
+### Minor Changes
+
+- **feat**: Improved funding flow in `Checkout` by @0xAlec #1692
+- **chore**: Added `useOutsideClick` hook. By @cpcramer #1612
+- **chore**: Theme styling improvements. By @brendan-defi #1676
+- **fix**: Fixed `TokenDropdown` when parent container is larger than button. By @dschlabach #1667
+- **chore**: Removed `Farcaster Frames`. Deprecating `Framegear`, `Frames`, `XMTP`, and `Neynar` support. By @cpcramer #1693
+- **feat**: Updated `WalletModal` to support MetaMask wallet connection. By @cpcramer #1701
+- **fix**: Fixed changelog generation. By @dschlabach #1680
+- **docs**: Documentation updates and improvements. By @brendan-defi @0xAlec @dschlabach #1690 #1685
+
+Breaking Changes:
+
+- `Farcaster Frames` including `Framegear`, `Frames`, `XMTP`, and `Neynar` is no longer supported.
+
+## 0.35.8
+
+### Patch Changes
+
+- **docs**: Add `WalletModal` docs. @fakepixels @cpcramer #1671 #1669
+
+## 0.35.7
+
+### Patch Changes
+
+- **feat**: Add `WalletModal` component. By @cpcramer #1610
+- **docs**: Update `Transaction` docs for heterogeneous calls. By @abcrane123 #1560
+
+## 0.35.6
+
+### Patch Changes
+
+- **feat**: Add linking functionality to playground. By @dschlabach #1624
+- **feat**: Upgraded viem to support heterogeneous calls. By @abcrane123 #1527
+- **feat**: Added default WagmiProvider and QueryClientProvider if not provided in the React context. By @OxAlec #1589
+- **feat**: Added global Toast component. By @brendan-defi #1588
+
+## 0.35.5
+
+### Patch Changes
+
+- **fix**: Updated `NFTCard` and `NFTMintCard` to be more responsive. By @alessey #1590
+- **fix**: Updated `NFTCard` and `NFTMintCard` styles to use gap enabling simpler composition. By @alessey #1594
+- **docs**: Added `NFTCard` and `NFTMintCard` to the docs. By @alessey #1572
+- **docs**: Fixed typos in docs. By @steveviselli-cb @cypherpepe #1593 #1587
+- **docs**: Added `NFTCardDefault` and `NFTMintCardDefault` to the docs. By @alessey #1592
+- **fix**: Fixed misconfigured `.env` file in `create-onchain` CLI. By @dschlabach #1595
+- **docs**: Added `"use client"` directive to instructions for Next.js. By @dschlabach #1596
+
+## 0.35.4
+
+### Patch Changes
+
+-**chore**: Updated `OnchainKitProvider` to fallback to CB verified schemaID. By @cpcramer #1575 -**chore**: Updated `hasCopyAddressOnClick` functionality to specify `Address` component. By @cpcramer #1547 -**docs**: Updated documentation. @dschlabach @fakepixels #1555 #1567 -**docs**: Added installation steps for `Astro`, `Nextjs`, `Remix`, and `Vite`. @brendan-defi #1546 -**feat**: Added hot-loading for playground development. @dschlabach #1551 -**feat**: Added `NFTCard`, `NFTCardDefault`, `NFTMintCard`, and `NFTMintCardDefault` components. @alessey #1580 #1483 #1490
+
+## 0.35.3
+
+### Patch Changes
+
+- **feat**: Added `onConnect` handler to `<ConnectWallet />`. By @dschlabach #1529
+- **feat**: Added `NFTCard` and `NFTMintCard` components. By @alessey #1409
+- **fix**: Added media square prop, default to true. By @alessey #1548
+- **fix**: Updated Transaction link for smart wallets. by @abcrane123 #1550
+- **fix**: Updated Warpcast Socials link and SVG. By @cpcramer #1542
+- **fix**: Updated badge checkmark styling. By @cpcramer #1537
+- **fix**: Updated `hasCopyAddressOnClick`. By @cpcramer #1547
+
+## 0.35.2
+
+### Patch Changes
+
+- d84e29d: -**feat**: Added `IdentityCard` and `Socials` components. By @cpcramer #1489 -**fix**: Added `isSponsored` prop to components. By @abcrane123 #1499 -**fix**: Enforce base as chain for name resolution for Basenames. By @kirkas #1517
+
+## 0.35.1
+
+### Patch Changes
+
+- **feat**: Added ability to customize error and success states for `TransactionButton`. By @abcrane123 #1460
+- **feat**: Added custom `Theming` support. By @cpcramer #1465
+- **feat**: added `name` and `logo` to `OnchainKitProvider`. by @0xAlec #1506
+- **fix**: Added callback support to the `Transaction` component. By @alessy #1473
+- **docs**: Updated documentation. By @0xAlec @dschlabach @fakepixels @cpcramer #1465 #1470 #1477 #1478 #1486 #1487 #1490
+- **feat**: Updated playground with `Checkout` component and custom `Theming`. @0xAlec @cpcramer #1428 #1465
+- **feat**: Updated landing page. @mindapivessa #1482 #1496
+- **fix**: clear error message in CheckoutStatus if a request is denied. by @0xAlec #1510
+
+## 0.35.0
+
+### Minor Changes
+
+- **feat**: Add handling for calls and contracts promises in Transactions component. By @alessey #1450
+- **feat**: added presetCryptoAmount param to Checkout. by @0xAlec #1461
+- **chore** renamed `Pay` module to `Checkout`. by @0xAlec #1455
+- **fix**: fixed paymaster sponsorship prop `isSponsored` in `Checkout` component. by @0xAlec #1458
+- **fix**: Updated `ConnectWalletText` component styling to match the `ConnectWallet` text prop formatting. By @cpcramer #1445
+
+Breaking Changes:
+`Pay` has been renamed to `Checkout`. If you are using this component, please update your imports as necessary.
+
+## 0.34.1
+
+### Patch Changes
+
+- **chore**: Update missing address error handling in the `Identity` components. By @cpcramer #1430
+- **feat**: Added formatting for scientific notation for Swap amounts. by @0xAlec #1423
+- **feat**: Added `paymaster` field to OnchainKitConfig. by @0xAlec #1425
+- **feat** Added `isSponsored` to `Pay` component. by 0xAlec #1427
+- **feat**: Added `Pay` component theming support. By @cpcramer #1431
+- **fix**: Added browser window check in usePreferredColorScheme to fix server side errors. By @cpcramer #1424
+
+## 0.34.0
+
+### Minor Changes
+
+- **feat**: Added `Theming` support. By @cpcramer #1354
+- **docs**: Added `Pay` component docs. By @0xAlec #1400
+
+Breaking Changes
+
+- Added a new config parameter to the `OnchainKitProvider`. The config object includes an appearance property with optional `mode` and `theme` parameters, allowing you to customize the appearance of your components.
+- Updated CSS variables to use the `ock` prefix (e.g., `--ock-bg-default`). We’ve also introduced many new variables to enhance theming customization.
+- For detailed information and theming instructions, refer to the `Theming Guide` in the documentation.
+
+## 0.33.6
+
+### Patch Changes
+
+-**chore**: Updated documentation, including support for `copy to clipboard` functionality in code blocks. By @alessey @fakepixels #1342 -**chore**: Reset state in `Pay` component after `Get USDC` is clicked. By @0xAlec #1394
+
+## 0.33.5
+
+### Patch Changes
+
+-**fix**: Removed circular dependency for WalletDefault. By @abcrane123 #1378
+
+## 0.33.4
+
+### Patch Changes
+
+- **feat**: Added SwapDefault component which renders suggested implementation of Swap. By @abcrane123 #1303
+- **feat**: Added WalletDefault component which renders suggested implementation of Wallet. By @abcrane123 #1302
+- **feat**: Added TransactionDefault component which renders suggested implementation of Transaction. By @abcrane123 #1350
+- **feat**: Added [Pay] component. by @0xAlec #1349
+
+## 0.33.3
+
+### Patch Changes
+
+- **feat**: Implemented the fund button integrated with Coinbase Onramp. By @steveviselli-cb #1322
+
+## 0.33.2
+
+### Patch Changes
+
+- **feat**: integrated Coinbase Onramp into `WalletDropdownFundLink` for funding EOA wallets. By @steveviselli-cb #1285
+
+## 0.33.1
+
+### Patch Changes
+
+- **feat**: added Swap USD values. By @cpcramer #1286
+- **feat**: added `SwapToast` component that renders on success. By @abcrane123 #1281
+- **feat**: added `isSponsored` prop for `Swap`. By @0xAlec #1293
+
+## 0.33.0
+
+### Minor Changes
+
+- **feat**: set v2 as default API for Swap. by @0xAlec #1254
+- **chore**: updated `SwapSettingsSlippageInput` to use the input config defaultMaxSlippage value. By @cpcramer #1263
+- **feat**: added batched Swap transactions from ERC-20. by @0xAlec #1272
+
+Breaking Changes
+
+Updated `LifecycleStatus` in `Swap` component for swaps from ERC-20 tokens.
+Previously, there were 2 transactions when swapping from an ERC-20 token.
+Now, there is an extra approval. (Approve ERC-20 against Permit2 -> Approve Uniswap to spend the approved ERC-20s on Permit2 -> Execute Swap Transaction)
+Additionally, for Coinbase Smart Wallet users, transaction calls are now batched so only one `transactionApproved` lifecycle status will be emitted under the `Batched` transaction type for swaps from ERC-20s.
+If you're listening to the `LifecycleStatus` in `Swap`, please make sure your app accounts for the extra transaction.
+
+## 0.32.0
+
+### Minor Changes
+
+- 7e18c98: - **feat**: re-typed walletCapabilities object in `OnchainKitConfig`. By @0xAlec #1238
+
+  - **fix**: removed `mt-4` from `<TransactionButton>`, ensuring the primary component maintains a clean and consistent design without outer margin. By @zizzamia #1258
+  - **fix**: renamed LifeCycle to Lifecycle. By @zizzamia #1257
+  - **fix**: `SwapSlippageInput` was visually resetting to default value on error. By @cpcramer #1250
+  - **fix**: removed context states and use `lifecyclestatus` as the source of truth, also persisted all lifecycle status data (except errors). By @alessey #1249
+  - **fix**: extracting `SwapMessage` to constants to avoid circular dependency. By @alessey #1255
+  - **feat**: enhanced Framegear Home component with layout, loading state, and placeholder improvements. By @adarshswaminath #1241
+
+  Breaking Changes
+
+  Removed `walletCapabilities` from the `OnchainKitConfig` and improved the internal types by using the native Viem wallet capabilities type. This update ensures that wallet capabilities are now used solely as read info, avoiding accidental changes to wallet capabilities.
+
+  The `<TransactionButton>` will no longer have a preset margin, allowing you to customize your app's spacing. Please check your app to see if you need to add a 4px margin. We aim to provide more neutral spacing, giving you the flexibility to add margin as needed.
+
+  The `LifeCycleStatus` type is now renamed `LifecycleStatus`. This update aligns with React's lifecycle naming best practices, ensuring a smoother experience with your app. Please take note of this improvement.
+
+## 0.31.6
+
+### Patch Changes
+
+- **feat**: added custom max slippage support in the `Swap` component along with a new settings dropdown UI. By @cpcramer #1176 #1248
+- **feat**: added type `LifecycleStatusDataShared` to the `LifeCycleStatus` to hold shared lifeCycle state. By @zizzamia #1234 #1240
+- **feat**: introduced `config` for the `Swap` component, with the first option for `maxSlippage`. By @zizzamia & @cpcramer #1242
+- **fix**: added spacing between swap input and token select. By @alessey #1229
+
+## 0.31.5
+
+### Patch Changes
+
+- **feat**: added calls support to `Transaction` component. By @0xAlec #1220
+- **feat**: added `ConnectWalletText` to help customize style within `ConnectWallet`. By @zizzamia #1116 #1222
+- **feat**: added `isMainnetOnly` to `isBase` and `isEthereum` utilities. By @zizzamia #1167 #1221
+- **fix**: fixed issue with inputText state persisting to latter Framegear frames. By @brendan-defi #1218
+
+## 0.31.4
+
+### Patch Changes
+
+- **feat**: added support for `EIP-5792` (https://eips.ethereum.org/EIPS/eip-5792) in `OnchainKitProvider`. By@0xAlec #1181
+- **fix**: adjusted hover styling for the `Fund` and `Disconnect` wallet components in mobile view. By @cpcramer #1211
+- **feat** added `walletCapabilities` for atomic batching (`useWriteContracts` vs `useWriteContract`) in`Transaction` component. By @0xAlec #1214
+
+## 0.31.3
+
+### Patch Changes
+
+- **feat**: added `buildPayTransaction` utilities for making RPC calls to hydrate a charge and build a pay transaction in preparation for `Pay` button. By @avidreder #1177
+- **feat**: implemented custom slippage support sub-components in the `Swap` component. By @cpcramer #1187 #1192 #1191 #1195 #1196 #1206
+- **docs**: added Build Onchain Apps guide using OnchainKit's `app template`. By @zizzamia #1202
+- **fix**: updated v1 `Swap` API to pass the correct slippage unit of measurement. By @cpcramer #1189
+
+## 0.31.2
+
+### Patch Changes
+
+- **feat**: added connect wallet functionality to Swap component for disconnected users. By @abcrane123 #1173
+- **fix**: added logic to refetch balances and clear inputs after Swap succeeds. By @0xAlec #1089
+- **fix**: adjusted Swap component style to prevent UI shifting. By @abcrane123 #1184
+
+## 0.31.1
+
+### Patch Changes
+
+- **fix**: improved hover state for WalletDropdown component. By @cpcramer #1156
+- **feat**: added `onchainkit-version` header to API requests. By @0xAlec #1169
+- **feat**: introduced `getAddress` and `useAddress` utilities to easily retrieve an address from ENS name or basename. By @zizzamia #1170
+
+## 0.31.0
+
+### Minor Changes
+
+- **fix**: error message in `Swap` experience. By @zizzamia & @0xAlec #1154 #1153 #1155 4382d93
+- **fix**: removed `address` prop from `Swap` component. By @abcrane123 #1145
+- **feat**: moving `getTokens`, `buildSwapTransaction` and `getSwapQuote` under the API module. By @zizzamia #1146 #1151
+- **fix**: handled SSR hydration issues. By @abcrane123 #1117
+
+Breaking Changes
+We streamlined the `Swap` experience to match the `Transaction` experience by eliminating the need for an `address` prop, making it work automatically.
+
+All APIs within OnchainKit are now consolidated under the `@coinbase/onchainkit/api` module. There's no change in functionality; simply import them from the `api` module.
+
+## 0.30.0
+
+### Minor Changes
+
+- **feat**: Moved the `onError` and `onSuccess` lifecycle listeners from the `<SwapButton>` component to the `<Swap>` component. By @zizzamia #1139 ed2379e
+
+Breaking Changes
+OnchainKit standardizes lifecycle listeners with three callbacks: `onError`, `onSuccess`, and `onStatus`. The `onError` and `onSuccess` callbacks handle only the `error` and `success` states,respectively. In contrast, the `onStatus` callback provides more granular phases of each component's experience.
+
+Before, we used `onError` and `onSuccess` in the `<SwapButton />` component.
+
+```ts
+const handleOnError = useCallback((error) => {
+  console.log(error);
+}, []);
+const handleOnSuccess = useCallback((response) => {
+  console.log(response);
+}, []);
+
+...
+
+<Swap address={address}>
+  <SwapAmountInput
+    label="Sell"
+    swappableTokens={swappableTokens}
+    token={ETHToken}
+    type="from"
+  />
+  <SwapToggleButton />
+  <SwapAmountInput
+    label="Buy"
+    swappableTokens={swappableTokens}
+    token={USDCToken}
+    type="to"
+  />
+  <SwapButton
+    onError={handleOnError}
+    onSuccess={handleOnSuccess}
+  />
+  <SwapMessage />
+</Swap>
+```
+
+After, we use `onStatus` in the `<Swap />` component.
+
+```ts
+const handleOnStatus = useCallback((lifeCycleStatus: LifeCycleStatus) => {
+  console.log('Status:', lifeCycleStatus);
+}, []);
+
+...
+
+<Swap
+  address={address}
+  onStatus={handleOnStatus}
+>
+  <SwapAmountInput
+    label="Sell"
+    swappableTokens={swappableTokens}
+    token={ETHToken}
+    type="from"
+  />
+  <SwapToggleButton />
+  <SwapAmountInput
+    label="Buy"
+    swappableTokens={swappableTokens}
+    token={USDCToken}
+    type="to"
+  />
+  <SwapButton />
+  <SwapMessage />
+</Swap>
+```
+
+The `onStatus` callback will expose
+
+```ts
+export type LifeCycleStatus =
+  | {
+      statusName: 'init';
+      statusData: null;
+    }
+  | {
+      statusName: 'error';
+      statusData: SwapError;
+    }
+  | {
+      statusName: 'amountChange';
+      statusData: null;
+    }
+  | {
+      statusName: 'transactionPending';
+      statusData: null;
+    }
+  | {
+      statusName: 'transactionApproved';
+      statusData: {
+        transactionHash: Hex;
+        transactionType: 'ERC20' | 'Permit2';
+      };
+    }
+  | {
+      statusName: 'success';
+      statusData: {
+        transactionReceipt: TransactionReceipt;
+      };
+    };
+```
+
+## 0.29.5
+
+### Patch Changes
+
+- **feat**: exported `buildSwapTransaction`, `getSwapQuote` and `getTokens` from API module. By @zizzamia #1133 07c5af6
+- **feat**: added `useSendCall` and `useSendCalls` hooks to support call-type transactions in `Transaction` component. By @0xAlec #1130
+
+## 0.29.4
+
+### Patch Changes
+
+- **feat**: moved `onSuccess` and `onError` for Swap component at top level. By @zizzamia #1123 886d974
+- **patch**: removed unneccessary address prop from `Transaction` component and fix issue where Sponsor component isn't visible. By @abcrane123 #1114
+- **chore**: updated disconnect SVG image. By @cpcramer #1103
+- **fix**: improved issue with Swap where it wasn't fetching quote for amount without a leading 0. By @abcrane123 #1128
+
+## 0.29.3
+
+### Patch Changes
+
+- **chore**: Update all cases of BaseName to Basename. Update `WalletDropdownBaseName` to `WalletDropdownBasename`. Update the identity type `BaseName` to `Basename` and `WalletDropdownBaseNameReact` to `WalletDropdownBasenameReact`. By @cpcramer #1110 3d47932
+
+## 0.29.2
+
+### Patch Changes
+
+- **fix**: better defined pressable classes were accessing the hover state variable. Update the `TransactionButton` and `WalletDropdown` to use our pre-existing pressable classes. By @cpcramer #1092 704e160
+- **feat**: added `transactionIdle` and `transactionPending` to `lifeCycleStatus` in the Transaction experience. By @zizzamia #1088
+
+## 0.29.1
+
+### Patch Changes
+
+- **feat**: `WalletDropdownFundLink` small improvements. By @0xAlec #1070 a17237a
+- **feat**: better handling of `FrameButton` post actions. By @brendan-defi #1053
+- **fix**: default accountChain for `Identity` component. By @zizzamia #1071
+
+## 0.29.0
+
+### Minor Changes
+
+- **feat**: updated view transaction link experience. By @abcrane123 #1016 ccfc47f
+- **fix**: modified `Avatar` component to handle images with varying height/width ratio. By @kirkas #1058
+- **chore**: removed console.log statement in `useWriteContracts`. By @abcrane123 #1048
+- **feat**: added mobile drawer for `Wallet` experience, and `useBreakpoints` hook. By @abcrane123 #1045
+- **feat**: introduced `onStatus` listener, to help expose the internal `Transaction`'s component lifecycle.By @zizzamia #1034 #1047 #1055
+- **feat**: added `WalletDropdownFundLink` component as dropdown link for the keys.coinbase.com funding flow.By @0xAlec #1021
+- **chore**: increased `Wallet` dropdown png size to 18x18. By @cpcramer #1041 #1064
+- **chore**: `Transaction` components cleanup. By @zizzamia #1028 #1029 #1052
+- **fix**: adjusted dark mode within `TransactionToast`. By @abcrane123 #1020
+
+## 0.28.7
+
+### Patch Changes
+
+- **fix**: `Wallet` components svg render. By @cpcramer #1011 c14ca17
+
+## 0.28.6
+
+### Patch Changes
+
+- **fix**: exported `TransactionResponse` type. By @abcrane123 #1007 2169905
+
+## 0.28.5
+
+### Patch Changes
+
+- **feat**: added `isBasename` and `getBaseDefaultProfilePicture` function to resolve to default avatars. By @kirkas #1002 9fbb7ec
+- **feat**: modified `getAvatar` to resolve default avatars, only for basenames. By @kirkas #1002
+
 ## 0.28.4
 
 ### Patch Changes
 
-- 0351295: - **chore**: updated all Wallet dropdown SVGs to render 16x16. Update text to Claim Basename (if no Basename), otherwise "Profile". By @cpcramer #990
-  - **feat**: added chain props to `useAvatar` and `getAvatar` to resolve Base avatar. By @kirkas #986
-  - **feat**: modified `getAvatar` to resolve Base avatar, and fallback to mainnet if none is found. By @kirkas #986
+- **chore**: updated all Wallet dropdown SVGs to render 16x16. Update text to Claim Basename (if no Basename), otherwise "Profile". By @cpcramer #990 0351295
+- **feat**: added chain props to `useAvatar` and `getAvatar` to resolve Base avatar. By @kirkas #986
+- **feat**: modified `getAvatar` to resolve Base avatar, and fallback to mainnet if none is found. By @kirkas #986
 
 ## 0.28.3
 
@@ -120,14 +648,14 @@ Learn more about this component type at https://onchainkit.xyz/transactiontypes#
 
 ### Patch Changes
 
-- **fix**: updatd Base mainnet L2 resolver address. By @kirkas #903 04e1376
+- **fix**: updated Base mainnet L2 resolver address. By @kirkas #903 04e1376
 - **feat**: added `SmartWalletCapabilities` paymaster support in the `Transaction` component. By @ilikesymmetry @cpcramer #893
 
 ## 0.26.6
 
 ### Patch Changes
 
-- **fix**: have `WalletDropdownDisconnect` to correclty disconnect all connectors. By @kirkas #895 8e78166
+- **fix**: have `WalletDropdownDisconnect` to correctly disconnect all connectors. By @kirkas #895 8e78166
 
 ## 0.26.5
 
@@ -499,10 +1027,10 @@ Features
 
 - **fix**: swap `Token` pair mode. By @kyhyco #566 5347ea9
 - **feat**: added input delay to `SwapAmountInput`. By @kyhyco #563
-- **feat**: addeded swappable tokens to `SwapAmountInput`. By @abcrane123 #561
+- **feat**: added swappable tokens to `SwapAmountInput`. By @abcrane123 #561
 - **fix**: updated Smart Wallet util. By @lukasrosario #564
 - **chore**: updated `isWalletASmartWallet` name to be `isWalletACoinbaseSmartWallet`. We want to explicitly state that this is checking for Coinbase Smart Wallets. By @cpcramer #562
-- **feat**: enableded linting in CI. By @zizzamia #559
+- **feat**: enabled linting in CI. By @zizzamia #559
 
 ## 0.20.7
 

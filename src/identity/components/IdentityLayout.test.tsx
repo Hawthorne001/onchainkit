@@ -1,79 +1,149 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { Address } from './Address';
-import { Avatar } from './Avatar';
-import { EthBalance } from './EthBalance';
-import { IdentityLayout } from './IdentityLayout';
-import { Name } from './Name';
+import { Address } from '@/identity/components/Address';
+import { Avatar } from '@/identity/components/Avatar';
+import { EthBalance } from '@/identity/components/EthBalance';
+import { IdentityLayout } from '@/identity/components/IdentityLayout';
+import { Name } from '@/identity/components/Name';
+import { Socials } from '@/identity/components/Socials';
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
-const handleCopy = vi.fn().mockResolvedValue(true);
-
-vi.mock('./Avatar', () => ({
+vi.mock('@/identity/components/Avatar', () => ({
   Avatar: vi.fn(() => <div>Avatar</div>),
 }));
 
-vi.mock('./Name', () => ({
+vi.mock('@/identity/components/Name', () => ({
   Name: vi.fn(() => <div>Name</div>),
 }));
 
-vi.mock('./Address', () => ({
+vi.mock('@/identity/components/Address', () => ({
   Address: vi.fn(() => <div>Address</div>),
 }));
 
-vi.mock('./EthBalance', () => ({
+vi.mock('@/identity/components/EthBalance', () => ({
   EthBalance: vi.fn(() => <div>EthBalance</div>),
 }));
 
-const renderComponent = () => {
+vi.mock('@/identity/components/Socials', () => ({
+  Socials: vi.fn(() => <div>Socials</div>),
+}));
+
+vi.mock('@/internal/hooks/useTheme', () => ({
+  useTheme: vi.fn(),
+}));
+
+const renderComponent = (props = {}) => {
   return render(
-    <IdentityLayout onClick={handleCopy} className="custom-class">
+    <IdentityLayout className="custom-class" {...props}>
       <Avatar />
       <Name />
       <Address />
       <EthBalance />
+      <Socials />
     </IdentityLayout>,
   );
 };
 
 describe('IdentityLayout', () => {
-  it('shows popover on hover and hides on mouse leave', async () => {
-    renderComponent();
-    const container = screen.getByTestId('ockIdentityLayout_container');
-    fireEvent.mouseEnter(container);
-    await waitFor(() => {
-      expect(screen.getByText('Copy')).toBeInTheDocument();
-    });
-    fireEvent.mouseLeave(container);
-    await waitFor(() => {
-      expect(screen.queryByText('Copy')).not.toBeInTheDocument();
-    });
-  });
-
-  it('changes popover text to "Copied" on click', async () => {
-    renderComponent();
-    const container = screen.getByTestId('ockIdentityLayout_container');
-    fireEvent.mouseEnter(container);
-    await waitFor(() => {
-      expect(screen.getByText('Copy')).toBeInTheDocument();
-    });
-    fireEvent.click(container);
-    await waitFor(() => {
-      expect(screen.getByText('Copied')).toBeInTheDocument();
-    });
-  });
-
-  it('renders children', () => {
+  it('should render all children components when present', () => {
     renderComponent();
     expect(screen.getByText('Avatar')).toBeInTheDocument();
     expect(screen.getByText('Name')).toBeInTheDocument();
     expect(screen.getByText('Address')).toBeInTheDocument();
     expect(screen.getByText('EthBalance')).toBeInTheDocument();
+    expect(screen.getByText('Socials')).toBeInTheDocument();
   });
 
-  it('renders with custom class', () => {
+  it('should render with custom class', () => {
     renderComponent();
     expect(screen.getByTestId('ockIdentityLayout_container')).toHaveClass(
       'custom-class',
+    );
+  });
+
+  it('should render correctly without Address component', () => {
+    render(
+      <IdentityLayout className="custom-class">
+        <Avatar />
+        <Name />
+        <EthBalance />
+      </IdentityLayout>,
+    );
+    expect(screen.getByText('Avatar')).toBeInTheDocument();
+    expect(screen.getByText('Name')).toBeInTheDocument();
+    expect(screen.getByText('EthBalance')).toBeInTheDocument();
+    expect(screen.queryByText('Address')).not.toBeInTheDocument();
+  });
+
+  it('should render correctly without EthBalance component', () => {
+    render(
+      <IdentityLayout>
+        <Avatar />
+        <Name />
+        <Address />
+      </IdentityLayout>,
+    );
+    expect(screen.getByText('Avatar')).toBeInTheDocument();
+    expect(screen.getByText('Name')).toBeInTheDocument();
+    expect(screen.getByText('Address')).toBeInTheDocument();
+    expect(screen.queryByText('EthBalance')).not.toBeInTheDocument();
+  });
+
+  it('should render correctly without Socials component', () => {
+    render(
+      <IdentityLayout>
+        <Avatar />
+        <Name />
+        <Address />
+        <EthBalance />
+      </IdentityLayout>,
+    );
+    expect(screen.getByText('Avatar')).toBeInTheDocument();
+    expect(screen.getByText('Name')).toBeInTheDocument();
+    expect(screen.getByText('Address')).toBeInTheDocument();
+    expect(screen.getByText('EthBalance')).toBeInTheDocument();
+    expect(screen.queryByText('Socials')).not.toBeInTheDocument();
+  });
+
+  it('should render correctly with only required components', () => {
+    render(
+      <IdentityLayout>
+        <Avatar />
+        <Name />
+      </IdentityLayout>,
+    );
+    expect(screen.getByText('Avatar')).toBeInTheDocument();
+    expect(screen.getByText('Name')).toBeInTheDocument();
+    expect(screen.queryByText('Address')).not.toBeInTheDocument();
+    expect(screen.queryByText('EthBalance')).not.toBeInTheDocument();
+    expect(screen.queryByText('Socials')).not.toBeInTheDocument();
+  });
+
+  it('should pass hasCopyAddressOnClick prop correctly to Address component', () => {
+    render(
+      <IdentityLayout hasCopyAddressOnClick={true}>
+        <Avatar />
+        <Name />
+        <Address />
+      </IdentityLayout>,
+    );
+    expect(Address).toHaveBeenCalledWith(
+      expect.objectContaining({ hasCopyAddressOnClick: true }),
+      expect.anything(),
+    );
+  });
+
+  it('should pass undefined hasCopyAddressOnClick when prop is not provided', () => {
+    render(
+      <IdentityLayout>
+        <Avatar />
+        <Name />
+        <Address />
+      </IdentityLayout>,
+    );
+    expect(Address).toHaveBeenCalledWith(
+      expect.objectContaining({ hasCopyAddressOnClick: undefined }),
+      expect.anything(),
     );
   });
 });

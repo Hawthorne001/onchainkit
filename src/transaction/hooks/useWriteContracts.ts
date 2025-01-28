@@ -1,18 +1,10 @@
-import type { TransactionExecutionError } from 'viem';
 import { useWriteContracts as useWriteContractsWagmi } from 'wagmi/experimental';
 import {
   GENERIC_ERROR_MESSAGE,
   METHOD_NOT_SUPPORTED_ERROR_SUBSTRING,
-  UNCAUGHT_WRITE_CONTRACTS_ERROR_CODE,
-  WRITE_CONTRACTS_ERROR_CODE,
 } from '../constants';
-import type { TransactionError } from '../types';
-
-type UseWriteContractsParams = {
-  onError?: (e: TransactionError) => void;
-  setErrorMessage: (error: string) => void;
-  setTransactionId: (id: string) => void;
-};
+import type { UseWriteContractsParams } from '../types';
+import { isUserRejectedRequestError } from '../utils/isUserRejectedRequestError';
 
 /**
  * useWriteContracts: Experimental Wagmi hook for batching transactions.
@@ -21,48 +13,32 @@ type UseWriteContractsParams = {
  * Does not support EOAs.
  */
 export function useWriteContracts({
-  onError,
-  setErrorMessage,
+  setLifecycleStatus,
   setTransactionId,
 }: UseWriteContractsParams) {
-  try {
-    const { status, writeContractsAsync } = useWriteContractsWagmi({
-      mutation: {
-        onSettled(data, error, variables, context) {
-          console.log('settled', data, error, variables, context);
-        },
-        onError: (e) => {
-          // Ignore EOA-specific error to fallback to writeContract
-          if (e.message.includes(METHOD_NOT_SUPPORTED_ERROR_SUBSTRING)) {
-            return;
-          }
-
-          if (
-            (e as TransactionExecutionError)?.cause?.name ===
-            'UserRejectedRequestError'
-          ) {
-            setErrorMessage('Request denied.');
-          } else {
-            setErrorMessage(GENERIC_ERROR_MESSAGE);
-          }
-          onError?.({ code: WRITE_CONTRACTS_ERROR_CODE, error: e.message });
-        },
-        onSuccess: (id) => {
-          setTransactionId(id);
-        },
+  const { status, writeContractsAsync } = useWriteContractsWagmi({
+    mutation: {
+      onError: (e) => {
+        // Ignore EOA-specific error to fallback to writeContract
+        if (e.message.includes(METHOD_NOT_SUPPORTED_ERROR_SUBSTRING)) {
+          return;
+        }
+        const errorMessage = isUserRejectedRequestError(e)
+          ? 'Request denied.'
+          : GENERIC_ERROR_MESSAGE;
+        setLifecycleStatus({
+          statusName: 'error',
+          statusData: {
+            code: 'TmUWCSh01', // Transaction module UseWriteContracts hook 01 error
+            error: e.message,
+            message: errorMessage,
+          },
+        });
       },
-    });
-    return { status, writeContractsAsync };
-  } catch (err) {
-    onError?.({
-      code: UNCAUGHT_WRITE_CONTRACTS_ERROR_CODE,
-      error: JSON.stringify(err),
-    });
-    setErrorMessage(GENERIC_ERROR_MESSAGE);
-    return {
-      status: 'error',
-      writeContracts: () => {},
-      writeContractsAsync: () => Promise.resolve({}),
-    };
-  }
+      onSuccess: (id) => {
+        setTransactionId(id);
+      },
+    },
+  });
+  return { status, writeContractsAsync };
 }

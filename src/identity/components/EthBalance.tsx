@@ -1,15 +1,17 @@
-import { getRoundedAmount } from '../../internal/utils/getRoundedAmount';
+'use client';
+import { useIdentityContext } from '@/identity/components/IdentityProvider';
+import type { EthBalanceReact } from '@/identity/types';
+import { getRoundedAmount } from '@/internal/utils/getRoundedAmount';
 import { cn, color, text } from '../../styles/theme';
 import { useGetETHBalance } from '../../wallet/hooks/useGetETHBalance';
-import type { EthBalanceReact } from '../types';
-import { useIdentityContext } from './IdentityProvider';
 
 export function EthBalance({ address, className }: EthBalanceReact) {
   const { address: contextAddress } = useIdentityContext();
   if (!contextAddress && !address) {
-    throw new Error(
+    console.error(
       'Address: an Ethereum address must be provided to the Identity or EthBalance component.',
     );
+    return null;
   }
 
   const { convertedBalance: balance, error } = useGetETHBalance(

@@ -18,27 +18,46 @@
 }
 
 .dark {
-  .vocs_CodeGroup,
-  .vocs_Tabs_list,
+  .vocs_CodeGroup {
+    background-color: #0F0F0F !important;
+    border-color: #18181b !important;
+  }
+  .vocs_Tabs_list {
+    background-color: #0F0F0F !important;
+    border-color: #18181b !important;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
   .vocs_Tabs_content,
   .vocs_CodeBlock,
   .vocs_CodeTitle,
-  .vocs_Pre_wrapper,
+  .vocs_Pre_wrapper {
+    background-color: #0F0F0F !important;
+    border-color: #18181b !important;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
   .vocs_Heading::before,
   .vocs_Code {
-    background-color: #1F2937 !important;
-    border-color: #1F2937 !important;
-  }
+    background-color: #0F0F0F !important;
+    border-color: #18181b !important;
 
+    --vocs-twoslash_popupBackground: #0F0F0F;
+    --vocs-color_background5: #0F0F0F;
+  }
+  .vocs_CopyButton {
+    background-color: #0F0F0F;
+  }
   .vocs_Tabs_trigger {
-    background-color: #1F2937;
+    background-color: #0F0F0F;
+    border-color: #818cf8;
     color: #F9FAFB;
   }
 }
 
 .vocs_CodeGroup {
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -48,6 +67,20 @@
   padding: 8px 8px 0;
 }
 
+.dark .vocs_NavigationMenu_content{
+  background-color: #0F0F0F;
+  border-color: #18181b !important;
+  border-radius: 8px;
+}
+
+.vocs_DesktopTopNav_item.vocs_NavigationMenu_link.vocs_Link.vocs_Link_styleless {
+  color: #030712;
+}
+
+.dark .vocs_DesktopTopNav_item.vocs_NavigationMenu_link.vocs_Link.vocs_Link_styleless {
+  color: #F9FAFB;
+}
+
 .vocs_Tabs_trigger {
   padding: 8px 16px;
   border: none;
@@ -55,9 +88,26 @@
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
   transition: color 0.3s;
+  color: #030712;
 }
 
-.vocs_Pre_wrapper pre {
+.vocs_Anchor.vocs_Link.vocs_Link_accent_underlined {
+  color: #030712;
+}
+
+.dark .vocs_Anchor.vocs_Link.vocs_Link_accent_underlined {
+  color: #F9FAFB;
+}
+
+.vocs_NavigationMenu_trigger.vocs_NavigationMenu_link {
+  color: #030712;
+}
+
+.dark .vocs_NavigationMenu_trigger.vocs_NavigationMenu_link {
+  color: #F9FAFB;
+}
+
+.dark .vocs_Pre_wrapper pre {
   background-color: transparent !important;
 }
 
@@ -183,10 +233,6 @@
   color: #818cf8;
 }
 
-.dark .social-icons-list path {
-  fill: white;
-}
-
 .dark .alternate-button {
   background-color: #818cf8;
   color: #030712;
@@ -210,4 +256,42 @@ footer a.vocs_Anchor {
 
 .social-icons-list path {
   fill: black;
+}
+
+.twitter-tweet {
+  border: 1px solid #111827;
+  border-radius: 0.91675rem;
+  overflow: hidden;
+}
+
+#twitter-widget-0 {
+  width: 27.375rem !important;
+  margin-bottom: -1px;
+}
+
+#twitter-widget-1 {
+  width: 40.5rem !important;
+}
+
+#twitter-widget-2 {
+  width: 40.5rem !important;
+  height: 39rem !important
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-scroll {
+  display: inline-flex;
+  animation: scroll 30s linear infinite;
+}
+
+.animate-scroll:hover {
+  animation-play-state: paused;
 }

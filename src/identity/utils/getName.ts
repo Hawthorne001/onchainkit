@@ -1,10 +1,10 @@
+import type { Basename, GetName, GetNameReturnType } from '@/identity/types';
 import { base, mainnet } from 'viem/chains';
-import { isBase } from '../../isBase';
-import { isEthereum } from '../../isEthereum';
-import { getChainPublicClient } from '../../network/getChainPublicClient';
+import { getChainPublicClient } from '../../core/network/getChainPublicClient';
+import { isBase } from '../../core/utils/isBase';
+import { isEthereum } from '../../core/utils/isEthereum';
 import L2ResolverAbi from '../abis/L2ResolverAbi';
 import { RESOLVER_ADDRESSES_BY_CHAIN_ID } from '../constants';
-import type { BaseName, GetName, GetNameReturnType } from '../types';
 import { convertReverseNodeToBytes } from './convertReverseNodeToBytes';
 
 /**
@@ -12,7 +12,6 @@ import { convertReverseNodeToBytes } from './convertReverseNodeToBytes';
  * name for a given Ethereum address. It returns the ENS name if it exists,
  * or null if it doesn't or in case of an error.
  */
-
 export const getName = async ({
   address,
   chain = mainnet,
@@ -27,27 +26,25 @@ export const getName = async ({
     );
   }
 
-  let client = getChainPublicClient(chain);
+  const client = getChainPublicClient(chain);
 
   if (chainIsBase) {
     const addressReverseNode = convertReverseNodeToBytes(address, base.id);
     try {
-      const baseName = await client.readContract({
+      const basename = await client.readContract({
         abi: L2ResolverAbi,
         address: RESOLVER_ADDRESSES_BY_CHAIN_ID[chain.id],
         functionName: 'name',
         args: [addressReverseNode],
       });
-      if (baseName) {
-        return baseName as BaseName;
+      if (basename) {
+        return basename as Basename;
       }
     } catch (_error) {
       // This is a best effort attempt, so we don't need to do anything here.
     }
   }
 
-  // Default to mainnet
-  client = getChainPublicClient(mainnet);
   // ENS username
   const ensName = await client.getEnsName({
     address,

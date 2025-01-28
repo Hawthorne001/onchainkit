@@ -1,34 +1,27 @@
-import { type Mock, vi } from 'vitest';
+import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom';
+import { useAttestations } from '@/identity/hooks/useAttestations';
+import { useName } from '@/identity/hooks/useName';
 import { render, screen, waitFor } from '@testing-library/react';
 import { base, baseSepolia, optimism } from 'viem/chains';
-import { useAttestations } from '../hooks/useAttestations';
-import { useName } from '../hooks/useName';
 import { getSlicedAddress } from '../utils/getSlicedAddress';
 import { Badge } from './Badge';
 import { useIdentityContext } from './IdentityProvider';
 import { Name } from './Name';
 
-const silenceError = () => {
-  const consoleErrorMock = vi
-    .spyOn(console, 'error')
-    .mockImplementation(() => {});
-  return () => consoleErrorMock.mockRestore();
-};
-
-vi.mock('../hooks/useAttestations', () => ({
+vi.mock('@/identity/hooks/useAttestations', () => ({
   useAttestations: vi.fn(),
 }));
 
-vi.mock('../hooks/useName', () => ({
+vi.mock('@/identity/hooks/useName', () => ({
   useName: vi.fn(),
 }));
 
-vi.mock('../utils/getSlicedAddress', () => ({
+vi.mock('@/identity/utils/getSlicedAddress', () => ({
   getSlicedAddress: vi.fn(),
 }));
 
-vi.mock('./IdentityProvider', () => ({
+vi.mock('@/identity/components/IdentityProvider', () => ({
   useIdentityContext: vi.fn(),
 }));
 
@@ -44,21 +37,24 @@ describe('Name', () => {
     vi.spyOn(console, 'error').mockImplementation(vi.fn());
   });
 
-  it('should throw an error when no address is provided', () => {
-    (useIdentityContext as vi.Mock).mockReturnValue({
-      schemaId: '0x123',
+  it('should console.error and return null when no address is provided', () => {
+    vi.mocked(useIdentityContext).mockReturnValue({
+      // @ts-expect-error
+      address: undefined,
+      chain: undefined,
     });
-    const restore = silenceError();
-    expect(() => {
-      render(<Name />);
-    }).toThrow(
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    const { container } = render(<Name />);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Name: an Ethereum address must be provided to the Identity or Name component.',
     );
-    restore();
+    expect(container.firstChild).toBeNull();
   });
 
   it('displays ENS name when available', () => {
-    (useIdentityContext as vi.Mock).mockReturnValue({
+    (useIdentityContext as Mock).mockReturnValue({
       schemaId: '0x123',
     });
     mockUseName.mockReturnValue({
@@ -70,7 +66,7 @@ describe('Name', () => {
   });
 
   it('use identity context address if provided', () => {
-    (useIdentityContext as vi.Mock).mockReturnValue({
+    (useIdentityContext as Mock).mockReturnValue({
       schemaId: '0x123',
       address: testIdentityProviderAddress,
     });
@@ -89,7 +85,7 @@ describe('Name', () => {
   });
 
   it('use identity context chain if provided', () => {
-    (useIdentityContext as vi.Mock).mockReturnValue({
+    (useIdentityContext as Mock).mockReturnValue({
       schemaId: '0x123',
       chain: optimism,
     });
@@ -108,7 +104,7 @@ describe('Name', () => {
   });
 
   it('use component address over identity context if both are provided', () => {
-    (useIdentityContext as vi.Mock).mockReturnValue({
+    (useIdentityContext as Mock).mockReturnValue({
       schemaId: '0x123',
       chain: optimism,
       address: testIdentityProviderAddress,
@@ -128,7 +124,7 @@ describe('Name', () => {
   });
 
   it('use component chain over identity context if both are provided', () => {
-    (useIdentityContext as vi.Mock).mockReturnValue({
+    (useIdentityContext as Mock).mockReturnValue({
       schemaId: '0x123',
       chain: optimism,
       address: testIdentityProviderAddress,
@@ -148,7 +144,7 @@ describe('Name', () => {
   });
 
   it('displays custom chain ENS name when available', () => {
-    (useIdentityContext as vi.Mock).mockReturnValue({
+    (useIdentityContext as Mock).mockReturnValue({
       schemaId: '0x123',
     });
     mockUseName.mockReturnValue({
@@ -160,14 +156,14 @@ describe('Name', () => {
   });
 
   it('displays sliced address when ENS name is not available', () => {
-    (useIdentityContext as vi.Mock).mockReturnValue({
+    (useIdentityContext as Mock).mockReturnValue({
       schemaId: '0x123',
     });
     mockUseName.mockReturnValue({
       data: null,
       isLoading: false,
     });
-    (getSlicedAddress as vi.Mock).mockReturnValue('0xName...ess');
+    (getSlicedAddress as Mock).mockReturnValue('0xName...ess');
     render(<Name address={testNameComponentAddress} />);
     expect(screen.getByText('0xName...ess')).toBeInTheDocument();
   });
@@ -180,11 +176,11 @@ describe('Name', () => {
   });
 
   it('renders badge when Badge is passed, user is attested and address set in Identity', async () => {
-    (useIdentityContext as vi.Mock).mockReturnValue({
+    (useIdentityContext as Mock).mockReturnValue({
       address: testNameComponentAddress,
       schemaId: '0x123',
     });
-    (useAttestations as vi.Mock).mockReturnValue(['attestation']);
+    (useAttestations as Mock).mockReturnValue(['attestation']);
     mockUseName.mockReturnValue({
       data: 'ens_name',
       isLoading: false,
@@ -203,10 +199,10 @@ describe('Name', () => {
   });
 
   it('renders badge when Badge is passed, user is attested and address set in Name', async () => {
-    (useIdentityContext as vi.Mock).mockReturnValue({
+    (useIdentityContext as Mock).mockReturnValue({
       schemaId: '0x123',
     });
-    (useAttestations as vi.Mock).mockReturnValue(['attestation']);
+    (useAttestations as Mock).mockReturnValue(['attestation']);
     mockUseName.mockReturnValue({
       address: testNameComponentAddress,
       data: 'ens_name',

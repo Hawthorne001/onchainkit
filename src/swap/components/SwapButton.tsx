@@ -1,20 +1,24 @@
-import { Spinner } from '../../internal/components/Spinner';
-import { background, cn, color, pressable, text } from '../../styles/theme';
+'use client';
+import { Spinner } from '@/internal/components/Spinner';
+import { background, border, cn, color, pressable, text } from '@/styles/theme';
+import { ConnectWallet } from '@/wallet/components/ConnectWallet';
 import type { SwapButtonReact } from '../types';
 import { useSwapContext } from './SwapProvider';
 
-export function SwapButton({
-  className,
-  disabled = false,
-  onError,
-  onStart,
-  onSuccess,
-}: SwapButtonReact) {
-  const { to, from, loading, isTransactionPending, handleSubmit } =
-    useSwapContext();
+export function SwapButton({ className, disabled = false }: SwapButtonReact) {
+  const {
+    address,
+    to,
+    from,
+    lifecycleStatus: { statusName },
+    handleSubmit,
+  } = useSwapContext();
 
   const isLoading =
-    to.loading || from.loading || loading || isTransactionPending;
+    to.loading ||
+    from.loading ||
+    statusName === 'transactionPending' ||
+    statusName === 'transactionApproved';
 
   const isDisabled =
     !from.amount ||
@@ -24,19 +28,28 @@ export function SwapButton({
     disabled ||
     isLoading;
 
+  // disable swap if to and from token are the same
+  const isSwapInvalid = to.token?.address === from.token?.address;
+
+  // prompt user to connect wallet
+  if (!isDisabled && !address) {
+    return <ConnectWallet className="mt-4 w-full" />;
+  }
+
   return (
     <button
       type="button"
       className={cn(
         background.primary,
+        border.radius,
         'w-full rounded-xl',
         'mt-4 px-4 py-3',
         isDisabled && pressable.disabled,
         text.headline,
         className,
       )}
-      onClick={() => handleSubmit(onError, onStart, onSuccess)}
-      disabled={isDisabled}
+      onClick={() => handleSubmit()}
+      disabled={isDisabled || isSwapInvalid}
       data-testid="ockSwapButton_Button"
     >
       {isLoading ? (

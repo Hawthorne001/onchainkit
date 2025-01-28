@@ -1,12 +1,13 @@
+import { getAttestations } from '@/identity/utils/getAttestations';
 /**
  * @vitest-environment jsdom
  */
 import { renderHook, waitFor } from '@testing-library/react';
 import { base } from 'viem/chains';
-import { getAttestations } from '../utils/getAttestations';
+import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAttestations } from './useAttestations';
 
-vi.mock('../utils/getAttestations', () => ({
+vi.mock('@/identity/utils/getAttestations', () => ({
   getAttestations: vi.fn(),
 }));
 
@@ -28,7 +29,7 @@ describe('useAttestations', () => {
   });
 
   it('returns an empty array if no attestations found', async () => {
-    (getAttestations as vi.Mock).mockReturnValue([]);
+    (getAttestations as Mock).mockReturnValue([]);
 
     const address = '0xaddress';
     const chain = base;
@@ -43,7 +44,7 @@ describe('useAttestations', () => {
   });
 
   it('returns attestations if found', async () => {
-    (getAttestations as vi.Mock).mockReturnValue([
+    (getAttestations as Mock).mockReturnValue([
       {
         schemaId: '0xschema',
       },
