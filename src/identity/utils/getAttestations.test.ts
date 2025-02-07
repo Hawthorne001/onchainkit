@@ -1,14 +1,14 @@
+import { getAttestationsByFilter } from '@/core/network/attestations';
 /**
  * @vitest-environment jsdom
  */
 import { base, opBNBTestnet } from 'viem/chains';
-import { vi } from 'vitest';
-import { getAttestationsByFilter } from '../../network/attestations';
+import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type { GetAttestationsOptions } from '../types';
-import { easSupportedChains } from './easSupportedChains';
 import { getAttestations } from './getAttestations';
 
-vi.mock('../../network/attestations');
+vi.mock('@/core/network/attestations');
 
 describe('getAttestations', () => {
   const mockAddress = '0x1234567890abcdef1234567890abcdef12345678';
@@ -31,22 +31,17 @@ describe('getAttestations', () => {
     vi.clearAllMocks();
   });
 
-  it('throws an error for unsupported chains', () => {
-    try {
-      getAttestations(mockAddress, opBNBTestnet, mockOptions);
-    } catch (e) {
-      expect(e).toHaveProperty(
-        'message',
-        `Chain is not supported. Supported chains: ${Object.keys(
-          easSupportedChains,
-        ).join(', ')}`,
-      );
-    }
+  it('should return and empty array for unsupported chains', async () => {
+    const result = await getAttestations(
+      mockAddress,
+      opBNBTestnet,
+      mockOptions,
+    );
+    expect(result).toEqual([]);
   });
 
   it('fetches attestations for supported chains', async () => {
-    (getAttestationsByFilter as vi.Mock).mockResolvedValue(mockAttestations);
-
+    (getAttestationsByFilter as Mock).mockResolvedValue(mockAttestations);
     const result = await getAttestations(mockAddress, base, mockOptions);
     expect(result).toEqual(mockAttestations); // Replace [] with expected mockAttestations once implemented
   });
@@ -63,12 +58,10 @@ describe('getAttestations', () => {
   });
 
   it('handles errors from getAttestationsByFilter correctly', async () => {
-    (getAttestationsByFilter as vi.Mock).mockRejectedValue(
+    (getAttestationsByFilter as Mock).mockRejectedValue(
       new Error('Network error'),
     );
-
     const result = await getAttestations(mockAddress, base);
-
     expect(result).toEqual([]);
   });
 

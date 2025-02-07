@@ -1,18 +1,23 @@
+'use client';
 import { useCallback, useEffect, useMemo } from 'react';
 import { TextInput } from '../../internal/components/TextInput';
+import { useValue } from '../../internal/hooks/useValue';
 import { getRoundedAmount } from '../../internal/utils/getRoundedAmount';
 import { isValidAmount } from '../../internal/utils/isValidAmount';
-import { background, cn, color, pressable, text } from '../../styles/theme';
-import { TokenChip, TokenSelectDropdown } from '../../token';
+import {
+  background,
+  border,
+  cn,
+  color,
+  pressable,
+  text,
+} from '../../styles/theme';
 import type { Token } from '../../token';
+import { TokenChip, TokenSelectDropdown } from '../../token';
 import type { SwapAmountInputReact } from '../types';
+import { formatAmount } from '../utils/formatAmount';
 import { useSwapContext } from './SwapProvider';
 
-function useValue<T>(object: T): T {
-  return useMemo(() => object, [object]);
-}
-
-// istanbul ignore next
 export function SwapAmountInput({
   className,
   delayMs = 1000,
@@ -21,14 +26,13 @@ export function SwapAmountInput({
   type,
   swappableTokens,
 }: SwapAmountInputReact) {
-  const { to, from, handleAmountChange } = useSwapContext();
+  const { address, to, from, handleAmountChange } = useSwapContext();
 
   const source = useValue(type === 'from' ? from : to);
   const destination = useValue(type === 'from' ? to : from);
-
   useEffect(() => {
     if (token) {
-      source.setToken(token);
+      source.setToken?.(token);
     }
   }, [token, source.setToken]);
 
@@ -49,15 +53,14 @@ export function SwapAmountInput({
 
   const handleSetToken = useCallback(
     (token: Token) => {
-      source.setToken(token);
+      source.setToken?.(token);
       handleAmountChange(type, source.amount, token);
     },
     [source.amount, source.setToken, handleAmountChange, type],
   );
 
-  // we are mocking the token selectors so i'm not able
+  // We are mocking the token selectors so I'm not able
   // to test this since the components aren't actually rendering
-  /* istanbul ignore next */
   const sourceTokenOptions = useMemo(() => {
     return (
       swappableTokens?.filter(
@@ -69,12 +72,20 @@ export function SwapAmountInput({
   const hasInsufficientBalance =
     type === 'from' && Number(source.balance) < Number(source.amount);
 
+  const formatUSD = (amount: string) => {
+    if (!amount || amount === '0') {
+      return null;
+    }
+    const roundedAmount = Number(getRoundedAmount(amount, 2));
+    return `~$${roundedAmount.toFixed(2)}`;
+  };
+
   return (
     <div
       className={cn(
-        background.alternate,
-        'box-border flex w-full flex-col items-start',
-        'rounded-md p-4',
+        background.secondary,
+        border.radius,
+        'box-border flex h-[148px] w-full flex-col items-start p-4',
         className,
       )}
       data-testid="ockSwapAmountInput_Container"
@@ -85,13 +96,13 @@ export function SwapAmountInput({
       <div className="flex w-full items-center justify-between">
         <TextInput
           className={cn(
-            'w-full border-[none] bg-transparent font-display text-[2.5rem]',
+            'mr-2 w-full border-[none] bg-transparent font-display text-[2.5rem]',
             'leading-none outline-none',
-            hasInsufficientBalance ? color.error : color.foreground,
+            hasInsufficientBalance && address ? color.error : color.foreground,
           )}
           placeholder="0.0"
           delayMs={delayMs}
-          value={source.amount}
+          value={formatAmount(source.amount)}
           setValue={source.setAmount}
           disabled={source.loading}
           onChange={handleChange}
@@ -110,6 +121,11 @@ export function SwapAmountInput({
         )}
       </div>
       <div className="mt-4 flex w-full justify-between">
+        <div className="flex items-center">
+          <span className={cn(text.label2, color.foregroundMuted)}>
+            {formatUSD(source.amountUSD)}
+          </span>
+        </div>
         <span className={cn(text.label2, color.foregroundMuted)}>{''}</span>
         <div className="flex items-center">
           {source.balance && (
@@ -117,7 +133,7 @@ export function SwapAmountInput({
               className={cn(text.label2, color.foregroundMuted)}
             >{`Balance: ${getRoundedAmount(source.balance, 8)}`}</span>
           )}
-          {type === 'from' && (
+          {type === 'from' && address && (
             <button
               type="button"
               className="flex cursor-pointer items-center justify-center px-2 py-1"

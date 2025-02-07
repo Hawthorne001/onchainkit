@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { describe, expect, it } from 'vitest';
 import { Badge } from './Badge';
 
 describe('Badge Component', () => {
@@ -19,9 +20,9 @@ describe('Badge Component', () => {
     await waitFor(() => {
       const badge = screen.queryByTestId('ockBadge');
       expect(badge).toHaveStyle(badgeStyle);
-      expect(badge).toHaveClass('bg-ock-primary');
-      const ticker = screen.queryByTestId('ockBadgeTicker');
-      expect(ticker).toHaveClass('fill-ock-inverse');
+      expect(badge).toHaveClass('ock-bg-primary');
+      const ticker = screen.queryByTestId('ock-badgeSvg');
+      expect(ticker).toHaveClass('ock-icon-color-inverse');
     });
   });
 });

@@ -1,36 +1,28 @@
-import type { Address, TransactionReceipt } from 'viem';
+import type { Address } from 'viem';
 import { encodeFunctionData, parseAbi } from 'viem';
-import type { Config } from 'wagmi';
-import { waitForTransactionReceipt } from 'wagmi/actions';
-import type { SendTransactionMutateAsync } from 'wagmi/query';
+import { base } from 'viem/chains';
 import {
   PERMIT2_CONTRACT_ADDRESS,
   UNIVERSALROUTER_CONTRACT_ADDRESS,
 } from '../constants';
-import type { BuildSwapTransaction } from '../types';
+import type { ProcessSwapTransactionParams, SwapTransaction } from '../types';
+import { sendSwapTransactions } from './sendSwapTransactions';
 
 export async function processSwapTransaction({
-  swapTransaction,
+  chainId,
   config,
-  setPendingTransaction,
-  setLoading,
+  isSponsored,
+  paymaster,
+  sendCallsAsync,
   sendTransactionAsync,
-  onStart,
-  onSuccess,
+  swapTransaction,
+  switchChainAsync,
+  updateLifecycleStatus,
   useAggregator,
-}: {
-  swapTransaction: BuildSwapTransaction;
-  config: Config;
-  setPendingTransaction: (value: React.SetStateAction<boolean>) => void;
-  setLoading: (value: React.SetStateAction<boolean>) => void;
-  sendTransactionAsync: SendTransactionMutateAsync<Config, unknown>;
-  onStart: ((txHash: string) => void | Promise<void>) | undefined;
-  onSuccess:
-    | ((txReceipt: TransactionReceipt) => void | Promise<void>)
-    | undefined;
-  useAggregator: boolean;
-}) {
+  walletCapabilities,
+}: ProcessSwapTransactionParams) {
   const { transaction, approveTransaction, quote } = swapTransaction;
+  const transactions: SwapTransaction[] = [];
 
   // for swaps from ERC-20 tokens,
   // if there is an approveTransaction present,
@@ -38,18 +30,14 @@ export async function processSwapTransaction({
   // for V1 API, `approveTx` will be an ERC-20 approval against the Router
   // for V2 API, `approveTx` will be an ERC-20 approval against the `Permit2` contract
   if (approveTransaction?.data) {
-    setPendingTransaction(true);
-    const approveTxHash = await sendTransactionAsync({
-      to: approveTransaction.to,
-      value: approveTransaction.value,
-      data: approveTransaction.data,
+    transactions.push({
+      transaction: {
+        to: approveTransaction.to,
+        value: approveTransaction.value,
+        data: approveTransaction.data,
+      },
+      transactionType: 'ERC20',
     });
-    await Promise.resolve(onStart?.(approveTxHash));
-    await waitForTransactionReceipt(config, {
-      hash: approveTxHash,
-      confirmations: 1,
-    });
-    setPendingTransaction(false);
 
     // for the V2 API, we use Uniswap's `UniversalRouter`, which uses `Permit2` for ERC-20 approvals
     // this adds an additional transaction/step to the swap process
@@ -57,7 +45,6 @@ export async function processSwapTransaction({
     // this would typically be a (gasless) signature, but we're using a transaction here to allow batching for Smart Wallets
     // read more: https://blog.uniswap.org/permit2-and-universal-router
     if (!useAggregator) {
-      setPendingTransaction(true);
       const permit2ContractAbi = parseAbi([
         'function approve(address token, address spender, uint160 amount, uint48 expiration) external',
       ]);
@@ -71,38 +58,39 @@ export async function processSwapTransaction({
           20_000_000_000_000, // The deadline where the approval is no longer valid - see https://docs.uniswap.org/contracts/permit2/reference/allowance-transfer
         ],
       });
-      const permitTxnHash = await sendTransactionAsync({
-        to: PERMIT2_CONTRACT_ADDRESS,
-        data: data,
-        value: 0n,
+      transactions.push({
+        transaction: {
+          to: PERMIT2_CONTRACT_ADDRESS,
+          value: 0n,
+          data,
+        },
+        transactionType: 'Permit2',
       });
-      await Promise.resolve(onStart?.(permitTxnHash));
-      await waitForTransactionReceipt(config, {
-        hash: permitTxnHash,
-        confirmations: 1,
-      });
-      setPendingTransaction(false);
     }
   }
-
-  // make the swap
-  setPendingTransaction(true);
-  const txHash = await sendTransactionAsync({
-    to: transaction.to,
-    value: transaction.value,
-    data: transaction.data,
-  });
-  await Promise.resolve(onStart?.(txHash));
-
-  setPendingTransaction(false);
-
-  // wait for swap to land onchain
-  setLoading(true);
-  const transactionObject = await waitForTransactionReceipt(config, {
-    hash: txHash,
-    confirmations: 1,
+  // The Swap Execution Transaction
+  transactions.push({
+    transaction: {
+      to: transaction.to,
+      value: transaction.value,
+      data: transaction.data,
+    },
+    transactionType: 'Swap',
   });
 
-  // user callback
-  await Promise.resolve(onSuccess?.(transactionObject));
+  // Switch to Base if the wallet is not on the current chain
+  if (chainId !== base.id) {
+    await switchChainAsync({ chainId: base.id });
+  }
+
+  await sendSwapTransactions({
+    config,
+    isSponsored,
+    paymaster,
+    sendCallsAsync,
+    sendTransactionAsync,
+    transactions,
+    updateLifecycleStatus,
+    walletCapabilities,
+  });
 }

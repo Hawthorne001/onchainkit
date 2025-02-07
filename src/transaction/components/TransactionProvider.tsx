@@ -3,13 +3,10 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
-import type {
-  Address,
-  TransactionExecutionError,
-  TransactionReceipt,
-} from 'viem';
+import type { Address } from 'viem';
 import {
   useAccount,
   useConfig,
@@ -17,18 +14,22 @@ import {
   useWaitForTransactionReceipt,
 } from 'wagmi';
 import { waitForTransactionReceipt } from 'wagmi/actions';
+import { Capabilities } from '../../core/constants';
+import { useCapabilitiesSafe } from '../../internal/hooks/useCapabilitiesSafe';
 import { useValue } from '../../internal/hooks/useValue';
-import {
-  GENERIC_ERROR_MESSAGE,
-  METHOD_NOT_SUPPORTED_ERROR_SUBSTRING,
-} from '../constants';
+import { useOnchainKit } from '../../useOnchainKit';
+import { GENERIC_ERROR_MESSAGE } from '../constants';
 import { useCallsStatus } from '../hooks/useCallsStatus';
-import { useWriteContract } from '../hooks/useWriteContract';
-import { useWriteContracts } from '../hooks/useWriteContracts';
+import { useSendCall } from '../hooks/useSendCall';
+import { useSendCalls } from '../hooks/useSendCalls';
+import { useSendWalletTransactions } from '../hooks/useSendWalletTransactions';
 import type {
+  LifecycleStatus,
   TransactionContextType,
   TransactionProviderReact,
 } from '../types';
+import { getPaymasterUrl } from '../utils/getPaymasterUrl';
+import { isUserRejectedRequestError } from '../utils/isUserRejectedRequestError';
 
 const emptyContext = {} as TransactionContextType;
 export const TransactionContext =
@@ -45,52 +46,183 @@ export function useTransactionContext() {
 }
 
 export function TransactionProvider({
-  address,
-  capabilities,
+  calls,
+  capabilities: transactionCapabilities,
   chainId,
   children,
   contracts,
+  isSponsored,
   onError,
+  onStatus,
   onSuccess,
 }: TransactionProviderReact) {
-  const [errorMessage, setErrorMessage] = useState('');
-  const [transactionId, setTransactionId] = useState('');
-  const [isToastVisible, setIsToastVisible] = useState(false);
-  const [transactionHashArray, setTransactionHashArray] = useState<Address[]>(
-    [],
-  );
-  const [receiptArray, setReceiptArray] = useState<TransactionReceipt[]>([]);
+  // Core Hooks
   const account = useAccount();
   const config = useConfig();
-  const { switchChainAsync } = useSwitchChain();
-  const { status: statusWriteContracts, writeContractsAsync } =
-    useWriteContracts({
-      onError,
-      setErrorMessage,
-      setTransactionId,
-    });
   const {
-    status: statusWriteContract,
-    writeContractAsync,
-    data: writeContractTransactionHash,
-  } = useWriteContract({
-    onError,
-    setErrorMessage,
-    setTransactionHashArray,
-    transactionHashArray,
+    config: { paymaster } = { paymaster: undefined },
+  } = useOnchainKit();
+
+  const [errorMessage, setErrorMessage] = useState('');
+  const [errorCode, setErrorCode] = useState('');
+  const [isToastVisible, setIsToastVisible] = useState(false);
+  const [lifecycleStatus, setLifecycleStatus] = useState<LifecycleStatus>({
+    statusName: 'init',
+    statusData: null,
+  }); // Component lifecycle
+  const [transactionId, setTransactionId] = useState('');
+  const [transactionCount, setTransactionCount] = useState<
+    number | undefined
+  >();
+  const [transactionHashList, setTransactionHashList] = useState<Address[]>([]);
+  const transactions = calls || contracts;
+
+  // Retrieve wallet capabilities
+  const walletCapabilities = useCapabilitiesSafe({
+    chainId,
   });
-  const { transactionHash, status: callStatus } = useCallsStatus({
-    onError,
-    transactionId,
+
+  const { switchChainAsync } = useSwitchChain();
+
+  // Validate `calls` and `contracts` props
+  if (!contracts && !calls) {
+    throw new Error(
+      'Transaction: calls or contracts must be provided as a prop to the Transaction component.',
+    );
+  }
+
+  // Validate `calls` and `contracts` props
+  if (calls && contracts) {
+    throw new Error(
+      'Transaction: Only one of contracts or calls can be provided as a prop to the Transaction component.',
+    );
+  }
+
+  // useSendCalls or useSendCall
+  // Used for contract calls with raw calldata.
+  const { status: statusSendCalls, sendCallsAsync } = useSendCalls({
+    setLifecycleStatus,
+    setTransactionId,
   });
+
+  const {
+    status: statusSendCall,
+    sendCallAsync,
+    data: singleTransactionHash,
+  } = useSendCall({
+    setLifecycleStatus,
+    transactionHashList,
+  });
+
+  // Transaction Status
+  // For batched, use statusSendCalls
+  // For single, use statusSendCall
+  const transactionStatus = useMemo(() => {
+    if (walletCapabilities[Capabilities.AtomicBatch]?.supported) {
+      return statusSendCalls;
+    }
+    return statusSendCall;
+  }, [statusSendCall, statusSendCalls, walletCapabilities]);
+
+  const capabilities = useMemo(() => {
+    if (isSponsored && paymaster) {
+      return {
+        paymasterService: { url: paymaster },
+        // this needs to be below so devs can override default paymaster
+        // with their personal paymaster in production playgroundd
+        ...transactionCapabilities,
+      };
+    }
+    return transactionCapabilities;
+  }, [isSponsored, paymaster, transactionCapabilities]);
+
+  // useSendWalletTransactions
+  // Used to send transactions based on the transaction type. Can be of type calls or contracts.
+  const sendWalletTransactions = useSendWalletTransactions({
+    capabilities,
+    sendCallAsync,
+    sendCallsAsync,
+    walletCapabilities,
+  });
+
+  const { transactionHash: batchedTransactionHash, status: callStatus } =
+    useCallsStatus({
+      setLifecycleStatus,
+      transactionId,
+    });
 
   const { data: receipt } = useWaitForTransactionReceipt({
-    hash: writeContractTransactionHash || transactionHash,
+    hash: singleTransactionHash || batchedTransactionHash,
   });
 
-  const getTransactionReceipts = useCallback(async () => {
+  // Component lifecycle emitters
+  useEffect(() => {
+    setErrorMessage('');
+    // Error
+    if (lifecycleStatus.statusName === 'error') {
+      setErrorMessage(lifecycleStatus.statusData.message);
+      setErrorCode(lifecycleStatus.statusData.code);
+      onError?.(lifecycleStatus.statusData);
+    }
+    // Transaction Legacy Executed
+    if (lifecycleStatus.statusName === 'transactionLegacyExecuted') {
+      setTransactionHashList(lifecycleStatus.statusData.transactionHashList);
+    }
+    // Success
+    if (lifecycleStatus.statusName === 'success') {
+      onSuccess?.({
+        transactionReceipts: lifecycleStatus.statusData.transactionReceipts,
+      });
+    }
+    // Emit Status
+    onStatus?.(lifecycleStatus);
+  }, [
+    onError,
+    onStatus,
+    onSuccess,
+    lifecycleStatus,
+    lifecycleStatus.statusData, // Keep statusData, so that the effect runs when it changes
+    lifecycleStatus.statusName, // Keep statusName, so that the effect runs when it changes
+  ]);
+
+  // Set transaction pending status when writeContracts or writeContract is pending
+  useEffect(() => {
+    if (transactionStatus === 'pending') {
+      setLifecycleStatus({
+        statusName: 'transactionPending',
+        statusData: null,
+      });
+    }
+  }, [transactionStatus]);
+
+  // Trigger success status when receipt is generated by useWaitForTransactionReceipt
+  useEffect(() => {
+    if (!receipt) {
+      return;
+    }
+    setLifecycleStatus({
+      statusName: 'success',
+      statusData: {
+        transactionReceipts: [receipt],
+      },
+    });
+  }, [receipt]);
+
+  // When all transactions are successful, get the receipts
+  useEffect(() => {
+    if (
+      !transactions ||
+      transactionHashList.length !== transactionCount ||
+      transactionCount < 2
+    ) {
+      return;
+    }
+    getTransactionLegacyReceipts();
+  }, [transactions, transactionCount, transactionHashList]);
+
+  const getTransactionLegacyReceipts = useCallback(async () => {
     const receipts = [];
-    for (const hash of transactionHashArray) {
+    for (const hash of transactionHashList) {
       try {
         const txnReceipt = await waitForTransactionReceipt(config, {
           hash,
@@ -98,41 +230,23 @@ export function TransactionProvider({
         });
         receipts.push(txnReceipt);
       } catch (err) {
-        console.error('getTransactionReceiptsError', err);
-        setErrorMessage(GENERIC_ERROR_MESSAGE);
+        setLifecycleStatus({
+          statusName: 'error',
+          statusData: {
+            code: 'TmTPc01', // Transaction module TransactionProvider component 01 error
+            error: JSON.stringify(err),
+            message: GENERIC_ERROR_MESSAGE,
+          },
+        });
       }
     }
-    setReceiptArray(receipts);
-  }, [chainId, config, transactionHashArray]);
-
-  useEffect(() => {
-    if (
-      transactionHashArray.length === contracts.length &&
-      contracts?.length > 1
-    ) {
-      getTransactionReceipts();
-    }
-  }, [contracts, getTransactionReceipts, transactionHashArray]);
-
-  const fallbackToWriteContract = useCallback(async () => {
-    // EOAs don't support batching, so we process contracts individually.
-    // This gracefully handles accidental batching attempts with EOAs.
-    for (const contract of contracts) {
-      try {
-        await writeContractAsync?.(contract);
-      } catch (err) {
-        // if user rejected request
-        if (
-          (err as TransactionExecutionError)?.cause?.name ===
-          'UserRejectedRequestError'
-        ) {
-          setErrorMessage('Request denied.');
-        } else {
-          setErrorMessage(GENERIC_ERROR_MESSAGE);
-        }
-      }
-    }
-  }, [contracts, writeContractAsync]);
+    setLifecycleStatus({
+      statusName: 'success',
+      statusData: {
+        transactionReceipts: receipts,
+      },
+    });
+  }, [chainId, config, transactionHashList]);
 
   const switchChain = useCallback(
     async (targetChainId: number | undefined) => {
@@ -143,76 +257,70 @@ export function TransactionProvider({
     [account.chainId, switchChainAsync],
   );
 
-  const executeContracts = useCallback(async () => {
-    await writeContractsAsync({
-      contracts,
-      capabilities,
+  const buildTransaction = useCallback(async () => {
+    setLifecycleStatus({
+      statusName: 'buildingTransaction',
+      statusData: null,
     });
-  }, [writeContractsAsync, contracts, capabilities]);
-
-  const handleSubmitErrors = useCallback(
-    async (err: unknown) => {
-      // handles EOA writeContracts error
-      // (fallback to writeContract)
-      if (
-        err instanceof Error &&
-        err.message.includes(METHOD_NOT_SUPPORTED_ERROR_SUBSTRING)
-      ) {
-        try {
-          await fallbackToWriteContract();
-        } catch (_err) {
-          setErrorMessage(GENERIC_ERROR_MESSAGE);
-        }
-        // handles user rejected request error
-      } else if (
-        (err as TransactionExecutionError)?.cause?.name ===
-        'UserRejectedRequestError'
-      ) {
-        setErrorMessage('Request denied.');
-        // handles generic error
-      } else {
-        setErrorMessage(GENERIC_ERROR_MESSAGE);
-      }
-    },
-    [fallbackToWriteContract],
-  );
+    try {
+      const resolvedTransactions = await (typeof transactions === 'function'
+        ? transactions()
+        : Promise.resolve(transactions));
+      setTransactionCount(resolvedTransactions?.length);
+      return resolvedTransactions;
+    } catch (err) {
+      setLifecycleStatus({
+        statusName: 'error',
+        statusData: {
+          code: 'TmTPc04', // Transaction module TransactionProvider component 04 error
+          error: JSON.stringify(err),
+          message: 'Error building transactions',
+        },
+      });
+      return undefined;
+    }
+  }, [transactions]);
 
   const handleSubmit = useCallback(async () => {
     setErrorMessage('');
     setIsToastVisible(true);
     try {
+      // Switch chain before attempting transactions
       await switchChain(chainId);
-      await executeContracts();
+      const resolvedTransactions = await buildTransaction();
+      await sendWalletTransactions(resolvedTransactions);
     } catch (err) {
-      await handleSubmitErrors(err);
+      const errorMessage = isUserRejectedRequestError(err)
+        ? 'Request denied.'
+        : GENERIC_ERROR_MESSAGE;
+      setLifecycleStatus({
+        statusName: 'error',
+        statusData: {
+          code: 'TmTPc03', // Transaction module TransactionProvider component 03 error
+          error: JSON.stringify(err),
+          message: errorMessage,
+        },
+      });
     }
-  }, [chainId, executeContracts, handleSubmitErrors, switchChain]);
-
-  useEffect(() => {
-    if (receiptArray?.length) {
-      onSuccess?.({ transactionReceipts: receiptArray });
-    } else if (receipt) {
-      onSuccess?.({ transactionReceipts: [receipt] });
-    }
-  }, [onSuccess, receipt, receiptArray]);
+  }, [buildTransaction, chainId, sendWalletTransactions, switchChain]);
 
   const value = useValue({
-    address,
     chainId,
-    contracts,
+    errorCode,
     errorMessage,
-    hasPaymaster: !!capabilities?.paymasterService?.url,
     isLoading: callStatus === 'PENDING',
     isToastVisible,
+    lifecycleStatus,
     onSubmit: handleSubmit,
+    paymasterUrl: getPaymasterUrl(capabilities),
     receipt,
-    setErrorMessage,
     setIsToastVisible,
+    setLifecycleStatus,
     setTransactionId,
-    statusWriteContracts,
-    statusWriteContract,
+    transactions,
     transactionId,
-    transactionHash: transactionHash || writeContractTransactionHash,
+    transactionHash: singleTransactionHash || batchedTransactionHash,
+    transactionCount,
   });
   return (
     <TransactionContext.Provider value={value}>

@@ -2,10 +2,6 @@ root:
 - changed-files:
   - any-glob-to-any-file: '*'
 
-framegear:
-- changed-files:
-  - any-glob-to-any-file: framegear/**
-
 documentation:
 - changed-files:
   - any-glob-to-any-file: site/**
@@ -14,13 +10,9 @@ documentation:
 - changed-files:
   - any-glob-to-any-file: src/core/**
 
-'pkg: farcaster':
+'pkg: fund':
 - changed-files:
-  - any-glob-to-any-file: src/farcaster/**
-
-'pkg: frame':
-- changed-files:
-  - any-glob-to-any-file: src/frame/**
+  - any-glob-to-any-file: src/fund/**
 
 'pkg: identity':
 - changed-files:
@@ -49,7 +41,3 @@ documentation:
 'pkg: wallet':
 - changed-files:
   - any-glob-to-any-file: src/wallet/**
-
-'pkg: xmtp':
-- changed-files:
-  - any-glob-to-any-file: src/xmtp/**

@@ -1,18 +1,8 @@
-import type { Address, TransactionExecutionError } from 'viem';
+import type { Address } from 'viem';
 import { useWriteContract as useWriteContractWagmi } from 'wagmi';
-import {
-  GENERIC_ERROR_MESSAGE,
-  UNCAUGHT_WRITE_CONTRACT_ERROR_CODE,
-  WRITE_CONTRACT_ERROR_CODE,
-} from '../constants';
-import type { TransactionError } from '../types';
-
-type UseWriteContractParams = {
-  onError?: (e: TransactionError) => void;
-  setErrorMessage: (error: string) => void;
-  setTransactionHashArray: (ids: Address[]) => void;
-  transactionHashArray?: Address[];
-};
+import { GENERIC_ERROR_MESSAGE } from '../constants';
+import type { UseWriteContractParams } from '../types';
+import { isUserRejectedRequestError } from '../utils/isUserRejectedRequestError';
 
 /**
  * Wagmi hook for single contract transactions.
@@ -20,39 +10,33 @@ type UseWriteContractParams = {
  * Does not support transaction batching or paymasters.
  */
 export function useWriteContract({
-  onError,
-  setErrorMessage,
-  setTransactionHashArray,
-  transactionHashArray,
+  setLifecycleStatus,
+  transactionHashList,
 }: UseWriteContractParams) {
-  try {
-    const { status, writeContractAsync, data } = useWriteContractWagmi({
-      mutation: {
-        onError: (e) => {
-          if (
-            (e as TransactionExecutionError)?.cause?.name ===
-            'UserRejectedRequestError'
-          ) {
-            setErrorMessage('Request denied.');
-          } else {
-            setErrorMessage(GENERIC_ERROR_MESSAGE);
-          }
-          onError?.({ code: WRITE_CONTRACT_ERROR_CODE, error: e.message });
-        },
-        onSuccess: (hash: Address) => {
-          setTransactionHashArray(
-            transactionHashArray ? transactionHashArray?.concat(hash) : [hash],
-          );
-        },
+  const { status, writeContractAsync, data } = useWriteContractWagmi({
+    mutation: {
+      onError: (e) => {
+        const errorMessage = isUserRejectedRequestError(e)
+          ? 'Request denied.'
+          : GENERIC_ERROR_MESSAGE;
+        setLifecycleStatus({
+          statusName: 'error',
+          statusData: {
+            code: 'TmUWCh01', // Transaction module UseWriteContract hook 01 error
+            error: e.message,
+            message: errorMessage,
+          },
+        });
       },
-    });
-    return { status, writeContractAsync, data };
-  } catch (err) {
-    onError?.({
-      code: UNCAUGHT_WRITE_CONTRACT_ERROR_CODE,
-      error: JSON.stringify(err),
-    });
-    setErrorMessage(GENERIC_ERROR_MESSAGE);
-    return { status: 'error', writeContractAsync: () => {} };
-  }
+      onSuccess: (hash: Address) => {
+        setLifecycleStatus({
+          statusName: 'transactionLegacyExecuted',
+          statusData: {
+            transactionHashList: [...transactionHashList, hash],
+          },
+        });
+      },
+    },
+  });
+  return { status, writeContractAsync, data };
 }

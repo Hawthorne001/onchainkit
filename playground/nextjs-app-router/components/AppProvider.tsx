@@ -1,99 +1,129 @@
 // AppContext.js
+import { ENVIRONMENT, ENVIRONMENT_VARIABLES } from '@/lib/constants';
+import { useStateWithStorage } from '@/lib/hooks';
+import {
+  type CheckoutOptions,
+  CheckoutTypes,
+  type ComponentMode,
+  type ComponentTheme,
+  OnchainKitComponent,
+  type Paymaster,
+  TransactionTypes,
+} from '@/types/onchainkit';
+import { OnchainKitProvider } from '@coinbase/onchainkit';
 import type React from 'react';
 import { createContext, useEffect, useState } from 'react';
-import { useConnect, useConnectors } from 'wagmi';
+import { base } from 'wagmi/chains';
 
-import { WalletPreference } from './form/wallet-type';
-
-export enum OnchainKitComponent {
-  Transaction = 'transaction',
-  Swap = 'swap',
-}
-export type Paymaster = {
-  url: string;
-  enabled: boolean;
-};
 type State = {
   activeComponent?: OnchainKitComponent;
   setActiveComponent?: (component: OnchainKitComponent) => void;
-  walletType?: WalletPreference;
-  setWalletType?: (walletType: WalletPreference) => void;
-  clearWalletType?: () => void;
   chainId?: number;
+  defaultMaxSlippage?: number;
+  setDefaultMaxSlippage?: (defaultMaxSlippage: number) => void;
   setChainId?: (chainId: number) => void;
+  transactionType?: TransactionTypes;
+  setTransactionType?: (transactionType: TransactionTypes) => void;
   paymasters?: Record<number, Paymaster>; // paymasters is per network
   setPaymaster?: (chainId: number, url: string, enabled: boolean) => void;
+  checkoutOptions?: CheckoutOptions;
+  setCheckoutOptions?: (checkoutOptions: CheckoutOptions) => void;
+  checkoutTypes?: CheckoutTypes;
+  setCheckoutTypes?: (checkoutTypes: CheckoutTypes) => void;
+  componentTheme?: ComponentTheme;
+  setComponentTheme: (theme: ComponentTheme) => void;
+  componentMode: ComponentMode;
+  setComponentMode: (mode: ComponentMode) => void;
+  nftToken?: string;
+  setNFTToken: (nftToken: string) => void;
+  setIsSponsored: (isSponsored: boolean) => void;
+  isSponsored?: boolean;
 };
 
-const defaultState: State = {
+export const defaultState: State = {
   activeComponent: OnchainKitComponent.Transaction,
-  chainId: 85432,
+  chainId: base.id,
+  componentTheme: 'default',
+  setComponentTheme: () => {},
+  componentMode: 'auto',
+  setComponentMode: () => {},
+  setNFTToken: () => {},
+  setIsSponsored: () => {},
 };
 
 export const AppContext = createContext(defaultState);
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
-  const { connect } = useConnect();
-  const connectors = useConnectors();
+  const [activeComponent, setActiveComponent] =
+    useStateWithStorage<OnchainKitComponent>({
+      key: 'activeComponent',
+      defaultValue: defaultState.activeComponent,
+    });
 
-  const [activeComponent, setActiveComponentState] =
-    useState<OnchainKitComponent>();
-  const [walletType, setWalletTypeState] = useState<WalletPreference>();
-  const [chainId, setChainIdState] = useState<number>();
+  const [componentTheme, setComponentTheme] =
+    useStateWithStorage<ComponentTheme>({
+      key: 'componentTheme',
+      defaultValue: defaultState.componentTheme,
+    });
+
+  const [componentMode, setComponentMode] = useStateWithStorage<ComponentMode>({
+    key: 'componentMode',
+    defaultValue: defaultState.componentMode,
+  });
+
+  const [chainId, setChainId] = useStateWithStorage<number>({
+    key: 'chainId',
+    parser: (v) => Number.parseInt(v),
+    defaultValue: defaultState.chainId,
+  });
+
+  const [transactionType, setTransactionType] =
+    useStateWithStorage<TransactionTypes>({
+      key: 'transactionType',
+      defaultValue: TransactionTypes.Contracts,
+    });
+
+  const [checkoutOptions, setCheckoutOptions] =
+    useStateWithStorage<CheckoutOptions>({
+      key: 'checkoutOptions',
+      parser: (v) => JSON.parse(v),
+      defaultValue: {},
+    });
+
+  const [checkoutTypes, setCheckoutTypes] = useStateWithStorage<CheckoutTypes>({
+    key: 'checkoutTypes',
+    defaultValue: CheckoutTypes.ProductID,
+  });
+
   const [paymasters, setPaymastersState] =
     useState<Record<number, Paymaster>>();
 
+  const [defaultMaxSlippage, setDefaultMaxSlippage] =
+    useStateWithStorage<number>({
+      key: 'defaultMaxSlippage',
+      parser: (v) => Number.parseInt(v),
+      defaultValue: 3,
+    });
+
+  const [nftToken, setNFTToken] = useStateWithStorage<string>({
+    key: 'nftToken',
+    defaultValue: '0x1D6b183bD47F914F9f1d3208EDCF8BefD7F84E63:1',
+  });
+
+  const [isSponsored, setIsSponsored] = useStateWithStorage<boolean>({
+    key: 'isSponsored',
+    defaultValue: false,
+    parser: (v) => v === 'true',
+  });
+
   // Load initial values from localStorage
   useEffect(() => {
-    const storedActiveComponent = localStorage.getItem('activeComponent');
-    const storedWalletType = localStorage.getItem('walletType');
-    const storedChainId = localStorage.getItem('chainId');
     const storedPaymasters = localStorage.getItem('paymasters');
 
-    if (storedActiveComponent) {
-      setActiveComponent(storedActiveComponent as OnchainKitComponent);
-    }
-    if (storedWalletType) {
-      setWalletType(storedWalletType as WalletPreference);
-    }
-    if (storedChainId) {
-      setChainIdState(Number.parseInt(storedChainId));
-    }
     if (storedPaymasters) {
       setPaymastersState(JSON.parse(storedPaymasters));
     }
   }, []);
-
-  // Connect to wallet if walletType changes
-  useEffect(() => {
-    if (walletType === WalletPreference.SMART_WALLET) {
-      connect({ connector: connectors[0] });
-    } else if (walletType === WalletPreference.EOA) {
-      connect({ connector: connectors[1] });
-    }
-  }, [walletType]);
-
-  // Update localStorage whenever the state changes
-
-  function setActiveComponent(component: OnchainKitComponent) {
-    localStorage.setItem('activeComponent', component.toString());
-    setActiveComponentState(component);
-  }
-
-  function setWalletType(newWalletType: WalletPreference) {
-    localStorage.setItem('walletType', newWalletType.toString());
-    setWalletTypeState(newWalletType);
-  }
-
-  function clearWalletType() {
-    localStorage.setItem('walletType', '');
-    setWalletTypeState(undefined);
-  }
-
-  const setChainId = (newChainId: number) => {
-    localStorage.setItem('chainId', newChainId.toString());
-    setChainIdState(newChainId);
-  };
 
   const setPaymaster = (chainId: number, url: string, enabled: boolean) => {
     const newObj = {
@@ -109,16 +139,50 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         activeComponent,
         setActiveComponent,
-        walletType,
-        setWalletType,
-        clearWalletType,
         chainId,
         setChainId,
+        componentTheme,
+        setComponentTheme,
+        componentMode,
+        setComponentMode,
+        checkoutOptions,
+        setCheckoutOptions,
+        checkoutTypes,
+        setCheckoutTypes,
         paymasters,
         setPaymaster,
+        transactionType,
+        setTransactionType,
+        defaultMaxSlippage,
+        setDefaultMaxSlippage,
+        nftToken,
+        setNFTToken,
+        setIsSponsored,
+        isSponsored,
       }}
     >
-      {children}
+      <OnchainKitProvider
+        apiKey={ENVIRONMENT_VARIABLES[ENVIRONMENT.API_KEY]}
+        chain={base}
+        config={{
+          appearance: {
+            name: 'OnchainKit Playground',
+            logo: 'https://onchainkit.xyz/favicon/48x48.png?v4-19-24',
+            mode: componentMode,
+            theme: componentTheme === 'none' ? undefined : componentTheme,
+          },
+          paymaster: paymasters?.[chainId || 8453]?.url,
+          wallet: {
+            display: 'modal',
+            termsUrl: 'https://www.coinbase.com/legal/cookie',
+            privacyUrl: 'https://www.coinbase.com/legal/privacy',
+          },
+        }}
+        projectId={ENVIRONMENT_VARIABLES[ENVIRONMENT.PROJECT_ID]}
+        schemaId="0xf8b05c79f090979bf4a80270aba232dff11a10d9ca55c4f88de95317970f0de9"
+      >
+        {children}
+      </OnchainKitProvider>
     </AppContext.Provider>
   );
 };

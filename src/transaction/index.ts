@@ -1,6 +1,7 @@
 // 🌲☀🌲
 export { Transaction } from './components/Transaction';
 export { TransactionButton } from './components/TransactionButton';
+export { TransactionDefault } from './components/TransactionDefault';
 export { TransactionSponsor } from './components/TransactionSponsor';
 export { TransactionStatus } from './components/TransactionStatus';
 export { TransactionStatusAction } from './components/TransactionStatusAction';
@@ -10,9 +11,10 @@ export { TransactionToastIcon } from './components/TransactionToastIcon';
 export { TransactionToastAction } from './components/TransactionToastAction';
 export { TransactionToastLabel } from './components/TransactionToastLabel';
 export type {
+  LifecycleStatus,
   TransactionButtonReact,
-  TransactionError,
   TransactionReact,
+  TransactionResponse,
   TransactionSponsorReact,
   TransactionStatusReact,
   TransactionStatusActionReact,
@@ -23,3 +25,4 @@ export type {
   TransactionToastLabelReact,
   WalletCapabilities,
 } from './types';
+export type { TransactionError } from '@/api/types';

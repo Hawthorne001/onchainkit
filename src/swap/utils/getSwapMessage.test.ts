@@ -1,38 +1,20 @@
-import { describe, expect, test, vi } from 'vitest';
-import type { Token } from '../../token';
+import { describe, expect, it, vi } from 'vitest';
 import {
   LOW_LIQUIDITY_ERROR_CODE,
+  SwapMessage,
   TOO_MANY_REQUESTS_ERROR_CODE,
   USER_REJECTED_ERROR_CODE,
 } from '../constants';
+import { ETH_TOKEN, USDC_TOKEN } from '../mocks';
+import type { GetSwapMessageParams } from '../types';
 /**
  * @vitest-environment node
  */
-import { SwapMessage, getSwapMessage } from './getSwapMessage';
-
-const ethToken: Token = {
-  name: 'ETH',
-  address: '',
-  symbol: 'ETH',
-  decimals: 18,
-  image:
-    'https://wallet-api-production.s3.amazonaws.com/uploads/tokens/eth_288.png',
-  chainId: 8453,
-};
-
-const usdcToken: Token = {
-  name: 'USDC',
-  address: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
-  symbol: 'USDC',
-  decimals: 6,
-  image:
-    'https://d3r81g40ycuhqg.cloudfront.net/wallet/wais/44/2b/442b80bd16af0c0d9b22e03a16753823fe826e5bfd457292b55fa0ba8c1ba213-ZWUzYjJmZGUtMDYxNy00NDcyLTg0NjQtMWI4OGEwYjBiODE2',
-  chainId: 8453,
-};
+import { getSwapMessage } from './getSwapMessage';
 
 describe('getSwapMessage', () => {
   const baseParams = {
-    error: undefined,
+    address: '0x123' as `0x${string}`,
     from: {
       error: undefined,
       balance: '0',
@@ -52,17 +34,20 @@ describe('getSwapMessage', () => {
       setLoading: vi.fn(),
       setToken: vi.fn(),
     },
-    loading: false,
+    lifecycleStatus: {
+      statusName: 'init',
+      statusData: { isMissingRequiredField: false, maxSlippage: 3 },
+    },
   };
 
-  test('returns BALANCE_ERROR when from or to has an error', () => {
+  it('should return BALANCE_ERROR when from or to has an error', () => {
     const params = {
       ...baseParams,
       from: {
         ...baseParams.from,
         error: { code: 'some_code', error: 'some error' },
       },
-    };
+    } as unknown as GetSwapMessageParams;
     expect(getSwapMessage(params)).toBe(SwapMessage.BALANCE_ERROR);
 
     const params2 = {
@@ -71,138 +56,158 @@ describe('getSwapMessage', () => {
         ...baseParams.to,
         error: { code: 'some_code', error: 'some error' },
       },
-    };
+    } as unknown as GetSwapMessageParams;
     expect(getSwapMessage(params2)).toBe(SwapMessage.BALANCE_ERROR);
   });
 
-  test('returns INSUFFICIENT_BALANCE when amount exceeds balance', () => {
+  it('should return INSUFFICIENT_BALANCE when amount exceeds balance', () => {
     const params = {
       ...baseParams,
       from: { ...baseParams.from, balance: '10', amount: '20' },
-    };
+    } as unknown as GetSwapMessageParams;
     expect(getSwapMessage(params)).toBe(SwapMessage.INSUFFICIENT_BALANCE);
   });
 
-  test('returns CONFIRM IN WALLET when pending transaction', () => {
+  it('should return CONFIRM IN WALLET when pending transaction', () => {
     const params = {
       ...baseParams,
-      isTransactionPending: true,
-    };
+      lifecycleStatus: { statusName: 'transactionPending', statusData: null },
+    } as unknown as GetSwapMessageParams;
     expect(getSwapMessage(params)).toBe(SwapMessage.CONFIRM_IN_WALLET);
   });
 
-  test('returns SWAP_IN_PROGRESS when loading is true', () => {
+  it('should return SWAP_IN_PROGRESS when loading is true', () => {
     const params = {
       ...baseParams,
-      loading: true,
-    };
+      lifecycleStatus: { statusName: 'transactionApproved', statusData: null },
+    } as unknown as GetSwapMessageParams;
     expect(getSwapMessage(params)).toBe(SwapMessage.SWAP_IN_PROGRESS);
   });
 
-  test('returns FETCHING_QUOTE when to or from loading is true', () => {
+  it('should return FETCHING_QUOTE when to or from loading is true', () => {
     const params = {
       ...baseParams,
       from: { ...baseParams.from, loading: true },
-    };
+    } as unknown as GetSwapMessageParams;
     expect(getSwapMessage(params)).toBe(SwapMessage.FETCHING_QUOTE);
 
     const params2 = {
       ...baseParams,
       to: { ...baseParams.to, loading: true },
-    };
+    } as unknown as GetSwapMessageParams;
     expect(getSwapMessage(params2)).toBe(SwapMessage.FETCHING_QUOTE);
   });
 
-  test('returns INCOMPLETE_FIELD when required fields are missing', () => {
+  it('should return INCOMPLETE_FIELD when required fields are missing', () => {
     const params = {
       ...baseParams,
-    };
+      lifecycleStatus: {
+        statusName: 'init',
+        statusData: { isMissingRequiredField: true },
+      },
+    } as unknown as GetSwapMessageParams;
     expect(getSwapMessage(params)).toBe(SwapMessage.INCOMPLETE_FIELD);
+  });
 
-    const params2 = {
+  it('should return TOO_MANY_REQUESTS when error code is TOO_MANY_REQUESTS_ERROR_CODE', () => {
+    const params = {
       ...baseParams,
       from: {
         ...baseParams.from,
-        amount: '10',
-        balance: '20',
-        token: ethToken,
+        balance: '10',
+        amount: '5',
+        token: ETH_TOKEN,
       },
-    };
-    expect(getSwapMessage(params2)).toBe(SwapMessage.INCOMPLETE_FIELD);
-
-    const params3 = {
-      ...baseParams,
-      to: { ...baseParams.to, amount: '10', token: usdcToken },
-    };
-    expect(getSwapMessage(params3)).toBe(SwapMessage.INCOMPLETE_FIELD);
-  });
-
-  test('returns TOO_MANY_REQUESTS when error code is TOO_MANY_REQUESTS_ERROR_CODE', () => {
-    const params = {
-      ...baseParams,
-      from: { ...baseParams.from, balance: '10', amount: '5', token: ethToken },
-      to: { ...baseParams.to, amount: '5', token: usdcToken },
-      error: {
-        quoteError: {
+      to: { ...baseParams.to, amount: '5', token: USDC_TOKEN },
+      lifecycleStatus: {
+        statusName: 'error',
+        statusData: {
           code: TOO_MANY_REQUESTS_ERROR_CODE,
           error: 'Too many requests error',
+          message: '',
         },
       },
-    };
+    } as unknown as GetSwapMessageParams;
     expect(getSwapMessage(params)).toBe(SwapMessage.TOO_MANY_REQUESTS);
   });
 
-  test('returns LOW_LIQUIDITY when error code is LOW_LIQUIDITY_ERROR_CODE', () => {
+  it('should return LOW_LIQUIDITY when error code is LOW_LIQUIDITY_ERROR_CODE', () => {
     const params = {
       ...baseParams,
-      from: { ...baseParams.from, balance: '10', amount: '5', token: ethToken },
-      to: { ...baseParams.to, amount: '5', token: usdcToken },
-      error: {
-        quoteError: {
+      from: {
+        ...baseParams.from,
+        balance: '10',
+        amount: '5',
+        token: ETH_TOKEN,
+      },
+      to: { ...baseParams.to, amount: '5', token: USDC_TOKEN },
+      lifecycleStatus: {
+        statusName: 'error',
+        statusData: {
           code: LOW_LIQUIDITY_ERROR_CODE,
           error: 'Low liquidity error',
+          message: '',
         },
       },
-    };
+    } as unknown as GetSwapMessageParams;
     expect(getSwapMessage(params)).toBe(SwapMessage.LOW_LIQUIDITY);
   });
 
-  test('returns USER_REJECTED when error code is USER_REJECTED_ERROR_CODE', () => {
+  it('should return USER_REJECTED when error code is USER_REJECTED_ERROR_CODE', () => {
     const params = {
       ...baseParams,
-      from: { ...baseParams.from, balance: '10', amount: '5', token: ethToken },
-      to: { ...baseParams.to, amount: '5', token: usdcToken },
-      error: {
-        quoteError: {
+      from: {
+        ...baseParams.from,
+        balance: '10',
+        amount: '5',
+        token: ETH_TOKEN,
+      },
+      to: { ...baseParams.to, amount: '5', token: USDC_TOKEN },
+      lifecycleStatus: {
+        statusName: 'error',
+        statusData: {
           code: USER_REJECTED_ERROR_CODE,
           error: 'User rejected error',
+          message: '',
         },
       },
-    };
+    } as unknown as GetSwapMessageParams;
     expect(getSwapMessage(params)).toBe(SwapMessage.USER_REJECTED);
   });
 
-  test('returns the first error message when general error is present', () => {
+  it('should return the first error message when general error is present', () => {
     const params = {
       ...baseParams,
-      from: { ...baseParams.from, balance: '10', amount: '5', token: ethToken },
-      to: { ...baseParams.to, amount: '5', token: usdcToken },
-      error: {
-        quoteError: {
+      from: {
+        ...baseParams.from,
+        balance: '10',
+        amount: '5',
+        token: ETH_TOKEN,
+      },
+      to: { ...baseParams.to, amount: '5', token: USDC_TOKEN },
+      lifecycleStatus: {
+        statusName: 'error',
+        statusData: {
           code: 'general_error_code',
           error: 'General error occurred',
+          message: '',
         },
       },
-    };
-    expect(getSwapMessage(params)).toBe('General error occurred');
+    } as unknown as GetSwapMessageParams;
+    expect(getSwapMessage(params)).toBe('');
   });
 
-  test('returns empty string when no error and all conditions are satisfied', () => {
+  it('should return empty string when no error and all conditions are satisfied', () => {
     const params = {
       ...baseParams,
-      from: { ...baseParams.from, balance: '10', amount: '5', token: ethToken },
-      to: { ...baseParams.to, amount: '5', token: usdcToken },
-    };
+      from: {
+        ...baseParams.from,
+        balance: '10',
+        amount: '5',
+        token: ETH_TOKEN,
+      },
+      to: { ...baseParams.to, amount: '5', token: USDC_TOKEN },
+    } as unknown as GetSwapMessageParams;
     expect(getSwapMessage(params)).toBe('');
   });
 });

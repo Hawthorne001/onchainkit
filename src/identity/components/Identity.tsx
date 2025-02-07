@@ -1,37 +1,19 @@
-import { useCallback } from 'react';
-import { useOnchainKit } from '../../useOnchainKit';
-import type { IdentityReact } from '../types';
-import { IdentityLayout } from './IdentityLayout';
-import { IdentityProvider } from './IdentityProvider';
+'use client';
+import { IdentityLayout } from '@/identity/components/IdentityLayout';
+import { IdentityProvider } from '@/identity/components/IdentityProvider';
+import type { IdentityReact } from '@/identity/types';
+import { useOnchainKit } from '@/useOnchainKit';
 
 export function Identity({
   address,
+  chain,
   children,
   className,
+  hasCopyAddressOnClick,
   schemaId,
-  hasCopyAddressOnClick = false,
-  chain,
 }: IdentityReact) {
-  // istanbul ignore next
   const { chain: contextChain } = useOnchainKit();
-
-  const accountChain = contextChain || chain;
-
-  const handleCopy = useCallback(async () => {
-    if (!address) {
-      return false;
-    }
-    try {
-      await navigator.clipboard.writeText(address);
-      return true;
-    } catch (e) {
-      console.error('Failed to copy: ', e);
-      return false;
-    }
-  }, [address]);
-
-  // istanbul ignore next
-  const onClick = hasCopyAddressOnClick ? handleCopy : undefined;
+  const accountChain = chain ?? contextChain;
 
   return (
     <IdentityProvider
@@ -39,7 +21,10 @@ export function Identity({
       schemaId={schemaId}
       chain={accountChain}
     >
-      <IdentityLayout className={className} onClick={onClick}>
+      <IdentityLayout
+        className={className}
+        hasCopyAddressOnClick={hasCopyAddressOnClick}
+      >
         {children}
       </IdentityLayout>
     </IdentityProvider>

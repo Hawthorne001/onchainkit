@@ -1,68 +1,60 @@
 // 🌲☀🌲
 import type { Address } from 'viem';
+import type { PortfolioTokenWithFiatValue } from '../api/types';
 
 /**
  * Note: exported as public Type
  */
 export type FormatAmountOptions = {
-  locale?: string; // User locale (default: browser locale)
-  minimumFractionDigits?: number; // Minimum fraction digits for number decimals
-  maximumFractionDigits?: number; // Maximum fraction digits for number decimals
+  /** User locale (default: browser locale) */
+  locale?: string;
+  /** Minimum fraction digits for number decimals */
+  minimumFractionDigits?: number;
+  /** Maximum fraction digits for number decimals */
+  maximumFractionDigits?: number;
 };
 
 /**
  * Note: exported as public Type
+ * See Number.prototype.toLocaleString for more info
  */
-export type FormatAmountResponse = string; // See Number.prototype.toLocaleString for more info
-
-/**
- * Note: exported as public Type
- */
-export type GetTokensError = {
-  code: number; // The Error code
-  error: string; // The Error message
-};
-
-/**
- * Note: exported as public Type
- */
-export type GetTokensResponse = Token[] | GetTokensError;
-
-/**
- * Note: exported as public Type
- */
-export type GetTokensOptions = {
-  limit?: string; // The maximum number of tokens to return (default: 50)
-  search?: string; // A string to search for in the token name, symbol or address
-  page?: string; // The page number to return (default: 1)
-};
+export type FormatAmountResponse = string;
 
 /**
  * Note: exported as public Type
  */
 export type Token = {
-  address: Address | ''; // The address of the token contract, this value will be empty for native ETH
-  chainId: number; // The chain id of the token contract
-  decimals: number; // The number of token decimals
-  image: string | null; // A string url of the token logo
+  /** The address of the token contract, this value will be empty for native ETH */
+  address: Address | '';
+  /** The chain id of the token contract */
+  chainId: number;
+  /** The number of token decimals */
+  decimals: number;
+  /** A string url of the token logo */
+  image: string | null;
   name: string;
-  symbol: string; // A ticker symbol or shorthand, up to 11 characters
+  /** A ticker symbol or shorthand, up to 11 characters */
+  symbol: string;
 };
 
 /**
  * Note: exported as public Type
  */
 export type TokenChipReact = {
+  /** Rendered token */
   token: Token;
   onClick?: (token: Token) => void;
   className?: string;
+  isPressable?: boolean;
 };
 
 /**
  * Note: exported as public Type
  */
 export type TokenImageReact = {
-  className?: string; // Optional additional CSS class to apply to the component
+  /** Optional additional CSS class to apply to the component */
+  className?: string;
+  /** size of the image in px (default: 24) */
   size?: number;
   token: Token;
 };
@@ -71,12 +63,15 @@ export type TokenImageReact = {
  * Note: exported as public Type
  */
 export type TokenRowReact = {
-  className?: string;
-  token: Token;
+  /** Token amount */
   amount?: string;
-  onClick?: (token: Token) => void;
-  hideSymbol?: boolean;
+  className?: string;
   hideImage?: boolean;
+  hideSymbol?: boolean;
+  /** Component on click handler */
+  onClick?: (token: Token) => void;
+  /** Rendered token */
+  token: Token;
 };
 
 /**
@@ -84,7 +79,9 @@ export type TokenRowReact = {
  */
 export type TokenSearchReact = {
   className?: string;
+  /** Debounce delay in milliseconds */
   delayMs?: number;
+  /** Search callback function */
   onChange: (value: string) => void;
 };
 
@@ -93,25 +90,69 @@ export type TokenSearchReact = {
  */
 export type TokenSelectButtonReact = {
   className?: string;
-  isOpen: boolean; // Determines carot icon direction
-  onClick: () => void; // Button on click handler
-  token?: Token; // Selected token
+  /** Determines carot icon direction */
+  isOpen: boolean;
+  /** Button on click handler */
+  onClick: () => void;
+  /** Selected token */
+  token?: Token;
 };
 
 /**
  * Note: exported as public Type
  */
 export type TokenSelectDropdownReact = {
-  options: Token[]; // List of tokens
-  setToken: (token: Token) => void; // Token setter
-  token?: Token; // Selected token
+  /** List of tokens */
+  options: Token[];
+  /** Token setter */
+  setToken: (token: Token) => void;
+  /** Selected token */
+  token?: Token;
 };
 
 /**
  * Note: exported as public Type
  */
 export type TokenSelectModalReact = {
-  options: Token[]; // List of tokens
-  setToken: (token: Token) => void; // Token setter
-  token?: Token; // Selected token
+  /** List of tokens */
+  options: Token[];
+  /** Token setter */
+  setToken: (token: Token) => void;
+  /** Selected token */
+  token?: Token;
 };
+
+/**
+ * Note: exported as public Type
+ */
+export type TokenBalanceProps = {
+  /** Token with fiat and crypto balance*/
+  token: PortfolioTokenWithFiatValue;
+  /** Subtitle to display next to the token name (eg. "available") */
+  subtitle?: string;
+  /** Show the token image (default: true) */
+  showImage?: boolean;
+  /** Click handler for the whole component*/
+  onClick?: (token: PortfolioTokenWithFiatValue) => void;
+  /** Size of the token image in px (default: 40) */
+  tokenSize?: number;
+  /** Optional additional CSS classes to apply to the component */
+  classNames?: {
+    container?: string;
+    tokenName?: string;
+    tokenValue?: string;
+    fiatValue?: string;
+    action?: string;
+  };
+} & (
+  | {
+      /** Hide the action button (default)*/
+      actionText?: never;
+      onActionPress?: never;
+    }
+  | {
+      /** Show an additional action button (eg. "Use max") */
+      actionText?: string;
+      onActionPress: () => void;
+    }
+);

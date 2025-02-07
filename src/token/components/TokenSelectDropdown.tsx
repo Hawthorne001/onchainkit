@@ -1,5 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { background, cn } from '../../styles/theme';
+'use client';
+
+import { useCallback, useRef, useState } from 'react';
+import { DropdownMenu } from '../../internal/components/DropdownMenu';
+import { background, border, cn, color } from '../../styles/theme';
 import type { TokenSelectDropdownReact } from '../types';
 import { TokenRow } from './TokenRow';
 import { TokenSelectButton } from './TokenSelectButton';
@@ -10,57 +13,40 @@ export function TokenSelectDropdown({
   token,
 }: TokenSelectDropdownReact) {
   const [isOpen, setIsOpen] = useState(false);
-
-  const handleToggle = useCallback(() => {
-    setIsOpen(!isOpen);
-  }, [isOpen]);
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  /* istanbul ignore next */
-  const handleBlur = useCallback((event: MouseEvent) => {
-    const isOutsideDropdown =
-      dropdownRef.current &&
-      !dropdownRef.current.contains(event.target as Node);
-    const isOutsideButton =
-      buttonRef.current && !buttonRef.current.contains(event.target as Node);
-
-    if (isOutsideDropdown && isOutsideButton) {
-      setIsOpen(false);
-    }
+  const closeDropdown = useCallback(() => {
+    setIsOpen(false);
   }, []);
 
-  useEffect(() => {
-    // NOTE: this ensures that handleBlur doesn't get called on initial mount
-    //       We need to use non-div elements to properly handle onblur events
-    setTimeout(() => {
-      document.addEventListener('click', handleBlur);
-    }, 0);
-
-    return () => {
-      document.removeEventListener('click', handleBlur);
-    };
-  }, [handleBlur]);
+  const toggleDropdown = useCallback(() => {
+    setIsOpen((prev) => !prev);
+  }, []);
 
   return (
-    <div className="relative shrink-0">
+    <div className="relative max-w-fit shrink-0">
       <TokenSelectButton
         ref={buttonRef}
-        onClick={handleToggle}
+        onClick={toggleDropdown}
         isOpen={isOpen}
         token={token}
       />
-      {isOpen && (
+      <DropdownMenu
+        trigger={buttonRef}
+        isOpen={isOpen}
+        onClose={closeDropdown}
+        align="end"
+      >
         <div
-          ref={dropdownRef}
           data-testid="ockTokenSelectDropdown_List"
           className={cn(
-            'absolute right-0 z-10 mt-1 flex max-h-80 w-fit flex-col overflow-y-hidden rounded-lg',
+            border.radius,
+            color.foreground,
+            'flex max-h-80 w-[200px] flex-col overflow-y-hidden',
             'ock-scrollbar',
           )}
         >
-          <div className="overflow-y-auto bg-[#ffffff]">
+          <div className="overflow-y-auto">
             {options.map((token) => (
               <TokenRow
                 className={cn(background.inverse, 'px-4 py-2')}
@@ -68,13 +54,13 @@ export function TokenSelectDropdown({
                 token={token}
                 onClick={() => {
                   setToken(token);
-                  handleToggle();
+                  setIsOpen(false);
                 }}
               />
             ))}
           </div>
         </div>
-      )}
+      </DropdownMenu>
     </div>
   );
 }

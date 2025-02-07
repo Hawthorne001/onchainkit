@@ -1,23 +1,46 @@
-import type { UserOperation } from 'permissionless';
+import type { Portfolio, PortfolioTokenWithFiatValue } from '@/api/types';
+import type { SwapError } from '@/swap';
+import type { SwapDefaultReact } from '@/swap/types';
+import type { Token } from '@/token';
+import type { QueryObserverResult } from '@tanstack/react-query';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import type { Address, Chain, PublicClient } from 'viem';
+import type { UserOperation } from 'viem/_types/account-abstraction';
 import type { UseBalanceReturnType, UseReadContractReturnType } from 'wagmi';
-import type { SwapError } from '../swap';
 
 export type ConnectButtonReact = {
-  className?: string; // Optional className override for button element
-  connectButtonOnClick: () => void; // Function to call when the button is clicked
-  text: string; // Optional text override for button
+  /** Optional className override for button element */
+  className?: string;
+  /** Optional text override for button */
+  connectWalletText: ReactNode | null;
+  /** Function to call when the button is clicked */
+  onClick: () => void;
+  /** Optional text override for button */
+  text: string;
 };
 
 /**
  * Note: exported as public Type
  */
 export type ConnectWalletReact = {
-  children?: React.ReactNode; // Children can be utilized to display customized content when the wallet is connected.
-  className?: string; // Optional className override for button element
-  text?: string; // Optional text override for button
-  withWalletAggregator?: boolean; // Optional flag to enable the wallet aggregator like RainbowKit
+  /** Children can be utilized to display customized content when the wallet is connected. */
+  children?: React.ReactNode;
+  /** Optional className override for button element */
+  className?: string;
+  /** @deprecated Prefer `ConnectWalletText component` */
+  text?: string;
+  /** Optional callback function to execute when the wallet is connected. */
+  onConnect?: () => void;
+};
+
+/**
+ * Note: exported as public Type
+ */
+export type ConnectWalletTextReact = {
+  /** The text to display */
+  children: React.ReactNode;
+  /** Optional className override for the element */
+  className?: string;
 };
 
 /**
@@ -32,7 +55,7 @@ export type IsValidAAEntrypointOptions = {
  */
 export type IsWalletACoinbaseSmartWalletOptions = {
   client: PublicClient;
-  userOp: UserOperation<'v0.6'>;
+  userOp: UserOperation<'0.6'>;
 };
 
 /**
@@ -60,10 +83,23 @@ export type UseGetTokenBalanceResponse = {
  * Note: exported as public Type
  */
 export type WalletContextType = {
-  address?: Address | null; // The Ethereum address to fetch the avatar and name for.
-  chain?: Chain; // Optional chain for domain resolution
-  isOpen: boolean;
-  setIsOpen: Dispatch<SetStateAction<boolean>>;
+  /** The Ethereum address to fetch the avatar and name for. */
+  address?: Address | null;
+  /** Optional chain for domain resolution */
+  chain?: Chain;
+  /** The breakpoint of the current device */
+  breakpoint: string | undefined;
+  /** Whether the connect modal is open */
+  isConnectModalOpen: boolean;
+  setIsConnectModalOpen: Dispatch<SetStateAction<boolean>>;
+  isSubComponentOpen: boolean;
+  setIsSubComponentOpen: Dispatch<SetStateAction<boolean>>;
+  isSubComponentClosing: boolean;
+  setIsSubComponentClosing: Dispatch<SetStateAction<boolean>>;
+  handleClose: () => void;
+  connectRef: React.RefObject<HTMLDivElement>;
+  showSubComponentAbove: boolean;
+  alignSubComponentRight: boolean;
 };
 
 /**
@@ -71,13 +107,37 @@ export type WalletContextType = {
  */
 export type WalletReact = {
   children: React.ReactNode;
+  className?: string;
+} & (
+  | { draggable?: true; draggableStartingPosition?: { x: number; y: number } }
+  | { draggable?: false; draggableStartingPosition?: never }
+);
+
+export type WalletSubComponentReact = {
+  connect: React.ReactNode;
+  connectRef: React.RefObject<HTMLDivElement>;
+  dropdown: React.ReactNode;
+  advanced: React.ReactNode;
+  isSubComponentOpen: boolean;
+  alignSubComponentRight: boolean;
+  showSubComponentAbove: boolean;
 };
 
 /**
  * Note: exported as public Type
  */
-export type WalletDropdownBaseNameReact = {
-  className?: string; // Optional className override for the element
+export type WalletBottomSheetReact = {
+  children: React.ReactNode;
+  /** Optional className override for top div element */
+  className?: string;
+};
+
+/**
+ * Note: exported as public Type
+ */
+export type WalletDropdownBasenameReact = {
+  /** Optional className override for the element */
+  className?: string;
 };
 
 /**
@@ -85,15 +145,44 @@ export type WalletDropdownBaseNameReact = {
  */
 export type WalletDropdownReact = {
   children: React.ReactNode;
-  className?: string; // Optional className override for top div element
+  /** Optional className override for top div element */
+  className?: string;
 };
 
 /**
  * Note: exported as public Type
  */
 export type WalletDropdownDisconnectReact = {
-  className?: string; // Optional className override for the element
-  text?: string; // Optional text override for the button
+  /** Optional className override for the element */
+  className?: string;
+  /** Optional text override for the button */
+  text?: string;
+};
+
+/**
+ * Note: exported as public Type
+ */
+export type WalletDropdownFundLinkReact = {
+  /** Optional className override for the element */
+  className?: string;
+  /** Optional icon override */
+  icon?: ReactNode;
+  /** Whether to open the funding flow in a tab or a popup window */
+  openIn?: 'popup' | 'tab';
+  /**
+   * Note: popupSize is only respected when providing your own funding link, or when a Coinbase Smart Wallet is
+   * connected. For any other wallet popupSize will be ignored as the Coinbase Onramp widget requires a fixed size
+   * popup window.
+   */
+  popupSize?: 'sm' | 'md' | 'lg';
+  /** Specifies the relationship between the current document and the linked document */
+  rel?: string;
+  /** Where to open the target if `openIn` is set to tab */
+  target?: string;
+  /** Optional text override */
+  text?: string;
+  /** Optional funding URL override */
+  fundingUrl?: string;
 };
 
 /**
@@ -101,9 +190,85 @@ export type WalletDropdownDisconnectReact = {
  */
 export type WalletDropdownLinkReact = {
   children: string;
-  className?: string; // Optional className override for the element
+  /** Optional className override for the element */
+  className?: string;
   href: string;
+  // TODO: fix this type - should be 'wallet' | ReactNode
   icon?: 'wallet' & ReactNode;
   rel?: string;
   target?: string;
 };
+
+/**
+ * Note: exported as public Type
+ */
+export type WalletAdvancedReact = {
+  children: React.ReactNode;
+  swappableTokens?: Token[];
+  classNames?: {
+    container?: string;
+    qr?: WalletAdvancedQrReceiveProps['classNames'];
+    swap?: WalletAdvancedSwapProps['classNames'];
+  };
+};
+
+/**
+ * Note: exported as public Type
+ */
+export type WalletAdvancedContextType = {
+  showSwap: boolean;
+  setShowSwap: Dispatch<SetStateAction<boolean>>;
+  isSwapClosing: boolean;
+  setIsSwapClosing: Dispatch<SetStateAction<boolean>>;
+  showQr: boolean;
+  setShowQr: Dispatch<SetStateAction<boolean>>;
+  isQrClosing: boolean;
+  setIsQrClosing: Dispatch<SetStateAction<boolean>>;
+  tokenBalances: PortfolioTokenWithFiatValue[] | undefined;
+  portfolioFiatValue: number | undefined;
+  isFetchingPortfolioData: boolean;
+  portfolioDataUpdatedAt: number | undefined;
+  refetchPortfolioData: () => Promise<QueryObserverResult<Portfolio, Error>>;
+  animations: {
+    container: string;
+    content: string;
+  };
+};
+
+export type WalletAdvancedQrReceiveProps = {
+  classNames?: {
+    container?: string;
+    header?: string;
+    copyButton?: string;
+  };
+};
+
+export type WalletAdvancedSwapProps = {
+  classNames?: {
+    /** Optional className override for the swap container */
+    container?: string;
+    /** Optional className override for the swap settings component */
+    settings?: {
+      /** Optional className override for the swap settings container */
+      container?: string;
+      /** Optional className override for the swap settings title */
+      slippageTitle?: string;
+      /** Optional className override for the swap settings description */
+      slippageDescription?: string;
+      /** Optional className override for the swap settings input */
+      slippageInput?: string;
+    };
+    /** Optional className override for the swap to amount input */
+    toAmountInput?: string;
+    /** Optional className override for the swap from amount input */
+    fromAmountInput?: string;
+    /** Optional className override for the swap toggle button */
+    toggleButton?: string;
+    /** Optional className override for the swap button */
+    swapButton?: string;
+    /** Optional className override for the swap message */
+    message?: string;
+    /** Optional className override for the swap toast */
+    toast?: string;
+  };
+} & Omit<SwapDefaultReact, 'children' | 'className' | 'headerLeftContent'>;

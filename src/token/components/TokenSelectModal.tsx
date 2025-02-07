@@ -1,3 +1,4 @@
+'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { background, cn, text } from '../../styles/theme';
 import type { Token, TokenSelectModalReact } from '../types';
@@ -47,12 +48,11 @@ function TokenSelectModalInner({
     [options],
   );
 
-  // istanbul ignore next
+  /* v8 ignore next 10 */
   const handleBlur = useCallback(
     (event: MouseEvent) => {
       const isOutsideModal =
         modalRef.current && !modalRef.current.contains(event.target as Node);
-
       if (isOutsideModal) {
         closeModal();
       }
@@ -60,14 +60,12 @@ function TokenSelectModalInner({
     [closeModal],
   );
 
-  // istanbul ignore next
   useEffect(() => {
     // NOTE: this ensures that handleBlur doesn't get called on initial mount
     //       We need to use non-div elements to properly handle onblur events
     setTimeout(() => {
       document.addEventListener('click', handleBlur);
     }, 0);
-
     return () => {
       document.removeEventListener('click', handleBlur);
     };

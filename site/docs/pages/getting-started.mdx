@@ -1,234 +1,50 @@
+import StartBuilding from '../components/StartBuilding';
+import InstallationOptions from '../components/InstallationOptions';
+
 # Getting Started
 
-OnchainKit is the easiest way for ANY developer to build beautiful onchain applications.
+OnchainKit is your go-to SDK for building beautiful onchain applications. Ship in minutes, not weeks. 
 
-You can use OnchainKit in an existing project, by installing OnchainKit as a dependency.
+Anyone can build an onchain app in 15 minutes with OnchainKit. No blockchain experience required.
 
-::::steps
+## Why OnchainKit?
 
-### Install
+OnchainKit streamlines app development by providing a comprehensive toolkit that combines powerful onchain features with developer-friendly design:
 
-Let's install OnchainKit as a dependency along with its dependencies.
+- **Ergonomic design:** Full-stack tools that make complex onchain interactions intuitive
+- **Battle-tested patterns:** Industry best practices packaged into ready-to-use solutions
+- **Purpose-built components:** Pre-built modules for common onchain workflows
+- **Framework agnostic:** Compatible with any React-supporting framework
+- **Supercharged by Base:** Deep integration with Base's protocol features and ecosystem
 
-:::code-group
 
-```bash [npm]
-npm install @coinbase/onchainkit
-```
-
-```bash [yarn]
-yarn add @coinbase/onchainkit
-```
-
-```bash [pnpm]
-pnpm add @coinbase/onchainkit
-```
-
-```bash [bun]
-bun add @coinbase/onchainkit
-```
-
-:::
-
-### Public API Key
-
-#### Obtain a Public API Key from the [Coinbase Developer Platform APIs](https://portal.cdp.coinbase.com/products/onchainkit).
+## Automatic Installation
 
 <img
-  alt="OnchainKit copy Public API Key"
-  src="https://onchainkit.xyz/assets/copy-api-key-guide.png"
-  width="auto"
+  alt="OnchainKit Template"
+  src="https://onchainkit.xyz/assets/quickstart.png"
+  height="364"
 />
 
-#### Create a .env file
+We recommend starting a new OnchainKit app using `create onchain`, which sets up everything automatically for you. To create a project, run:
 
-Create a new file in your project’s root directory and name it `.env`.
-
-<img
-  alt="OnchainKit define Public API Key"
-  src="https://onchainkit.xyz/assets/getting-started-create-env-file.png"
-  width="250"
-/>
-
-#### Define your Public API Key
-
-Set your Public API Key by assigning the value you copied from the Coinbase Developer Platform to the `PUBLIC_ONCHAINKIT_API_KEY` variable.
-
-```tsx [.env]
-PUBLIC_ONCHAINKIT_API_KEY=YOUR_PUBLIC_API_KEY
+```bash
+npm create onchain@latest
 ```
 
-#### Access the Public API Key in your code
+After the prompts, `create onchain` will create a folder with your project name and install the required dependencies.
 
-```tsx [OnchainProviders.tsx]
-<OnchainKitProvider 
-  apiKey={process.env.PUBLIC_ONCHAINKIT_API_KEY} // [!code focus] 
-  chain={base}
->
-  <YourComponents />
-</OnchainKitProvider>
-```
+You can also checkout our pre-built templates:
 
-### Configure the OnchainKitProvider
+- [Onchain Commerce](https://onchain-commerce-template.vercel.app/)
+- [NFT minting](https://ock-mint.vercel.app/)
+- [Funding flow](https://github.com/fakepixels/fund-component)
+- [Social profile](https://github.com/fakepixels/ock-identity)
 
-The `<OnchainKitProvider />` component equips your app with the essential context to interact with OnchainKit components and utilities.
+## Manual Installation
 
-Set the `chain` prop to your target chain and provide the Public API Key to access the embedded APIs.
+Add OnchainKit to your existing project manually.
 
-```tsx [OnchainProviders.tsx]
-'use client';
-import { ReactNode } from 'react';
-import { base } from 'viem/chains';
-import { OnchainKitProvider } from '@coinbase/onchainkit';
+<InstallationOptions />
 
-type Props = { children: ReactNode };
-
-function OnchainProviders({ children }: Props) {
-  return (
-    <OnchainKitProvider
-      apiKey={process.env.PUBLIC_ONCHAINKIT_API_KEY} 
-      chain={base}
-    >
-      <YourComponents />
-    </OnchainKitProvider>
-  );
-};
-
-export default OnchainProviders;
-```
-
-### Configure the WagmiProvider
-
-Many of OnchainKit's components require a WagmiProvider to access Wagmi utilities.
-
-If your application already includes these settings, you can skip this step.
-
-:::code-group
-
-```tsx [OnchainProviders.tsx]
-'use client';
-import { ReactNode } from 'react';
-import { OnchainKitProvider } from '@coinbase/onchainkit';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'; // [!code focus]
-import { base } from 'viem/chains';
-import { WagmiProvider } from 'wagmi'; // [!code focus]
-import { wagmiConfig } from './wagmi'; // [!code focus]
-
-type Props = { children: ReactNode };
-
-const queryClient = new QueryClient(); // [!code focus]
-
-function OnchainProviders({ children }: Props) {
-  return (
-    <WagmiProvider config={wagmiConfig}> // [!code focus]
-      <QueryClientProvider client={queryClient}> // [!code focus]
-        <OnchainKitProvider
-          apiKey={process.env.PUBLIC_ONCHAINKIT_API_KEY}
-          chain={base}
-        >
-          {children} // [!code focus]
-        </OnchainKitProvider>
-      </QueryClientProvider> // [!code focus]
-    </WagmiProvider> // [!code focus]
-  );
-}
-
-export default OnchainProviders;
-```
-
-```tsx [wagmi.ts]
-import { http, createConfig } from 'wagmi';
-import { base } from 'wagmi/chains';
-import { coinbaseWallet } from 'wagmi/connectors';
-
-export const wagmiConfig = createConfig({
-  chains: [base],
-  multiInjectedProviderDiscovery: false,
-  connectors: [
-    coinbaseWallet({
-      appName: 'yourAppName',
-      preference: 'smartWalletOnly', // set this to `all` to use EOAs as well
-      version: '4',
-    }),
-  ],
-  ssr: true,
-  transports: {
-    [base.id]: http(),
-  },
-});
-```
-:::
-
-### Wrap Your App with OnchainProviders
-
-Wrap your app with the `OnchainProviders` component to enable OnchainKit components and utilities.
-
-:::code-group
-
-```tsx [layout.tsx]
-import { OnchainProviders } from './OnchainProviders' // [!code focus]
-
-export default function RootLayout({ children }) {
-  return (
-    <OnchainProviders> // [!code focus]
-      { children }
-    </OnchainProviders> // [!code focus]
-  )
-}  
-```
-
-```tsx [OnchainProviders.tsx]
-'use client';
-import { ReactNode } from 'react';
-import { OnchainKitProvider } from '@coinbase/onchainkit';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { base } from 'viem/chains';
-import { WagmiProvider } from 'wagmi';
-import { wagmiConfig } from './wagmi';
-
-type Props = { children: ReactNode };
-
-const queryClient = new QueryClient();
-
-function OnchainProviders({ children }: Props) { // [!code focus]
-  return (
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <OnchainKitProvider
-          apiKey={process.env.PUBLIC_ONCHAINKIT_API_KEY}
-          chain={base}
-        >
-          {children}
-        </OnchainKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
-  );
-} // [!code focus]
-
-export default OnchainProviders; // [!code focus]
-```
-:::
-
-### Style your components
-
-All OnchainKit components come pre-configured with a style.
-
-Simply place this at the top of your application's entry point to have the components working out of the box.
-
-```javascript
-import '@coinbase/onchainkit/styles.css';
-```
-
-For `tailwindcss` users, follow the [Tailwindcss Integration Guide](/guides/tailwind).
-
-::::
-
-### Next Steps
-
-Get started with ready-to-use onchain components.
-
-- [**`Identity`**](/identity/identity) - Display ENS [avatars](/identity/avatar), Attestation [badges](/identity/badge), ENS [names](/identity/name) and account [addresses](/identity/address).
-- [**`Wallet`**](/wallet/wallet) - Create or connect your wallet with [Connect Wallet](/wallet/wallet).
-- [**`Tokens`**](/token/token-chip) - Search [Tokens](/token/types#token) using [getTokens](/token/get-tokens) and display them with [TokenSearch](/token/token-search), [TokenChip](/token/token-chip), and [TokenRow](/token/token-row).
-- [**`Swap`**](/swap/swap) - Swap [Tokens](/token/types#token) using the [Swap](/swap/swap) components.
-- [**`Frame`**](/frame/frame-metadata) - Test, build, and ship your Farcaster frames with [FrameMetadata](/frame/frame-metadata).
+<StartBuilding />

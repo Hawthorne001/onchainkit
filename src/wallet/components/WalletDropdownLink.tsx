@@ -1,6 +1,7 @@
-import { isValidElement, useMemo } from 'react';
-import { walletSvg } from '../../internal/svg/walletSvg';
-import { cn, pressable, text } from '../../styles/theme';
+'use client';
+
+import { useIcon } from '../../internal/hooks/useIcon';
+import { cn, color, pressable, text } from '../../styles/theme';
 import type { WalletDropdownLinkReact } from '../types';
 
 export function WalletDropdownLink({
@@ -11,23 +12,13 @@ export function WalletDropdownLink({
   rel,
   target,
 }: WalletDropdownLinkReact) {
-  const iconSvg = useMemo(() => {
-    if (icon === undefined) {
-      return null;
-    }
-    switch (icon) {
-      case 'wallet':
-        return walletSvg;
-    }
-    if (isValidElement(icon)) {
-      return icon;
-    }
-  }, [icon]);
+  const iconSvg = useIcon({ icon });
 
   return (
     <a
       className={cn(
         pressable.default,
+        color.foreground,
         'relative flex items-center px-4 py-3',
         className,
       )}
@@ -35,7 +26,7 @@ export function WalletDropdownLink({
       target={target}
       rel={rel}
     >
-      <div className="-translate-y-1/2 absolute top-1/2 left-4 flex h-5 w-5 items-center justify-center">
+      <div className="-translate-y-1/2 absolute top-1/2 left-4 flex h-[1.125rem] w-[1.125rem] items-center justify-center">
         {iconSvg}
       </div>
       <span className={cn(text.body, 'pl-6')}>{children}</span>

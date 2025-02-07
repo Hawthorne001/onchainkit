@@ -1,42 +1,36 @@
 import { base, baseSepolia, optimism } from 'viem/chains';
-import { vi } from 'vitest';
+import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import '@testing-library/jest-dom';
+import { useIdentityContext } from '@/identity/components/IdentityProvider';
+import { useAttestations } from '@/identity/hooks/useAttestations';
+import { useAvatar } from '@/identity/hooks/useAvatar';
+import { useName } from '@/identity/hooks/useName';
+import { useOnchainKit } from '@/useOnchainKit';
 import { render, screen, waitFor } from '@testing-library/react';
-import { useOnchainKit } from '../../useOnchainKit';
-import { useAttestations } from '../hooks/useAttestations';
-import { useAvatar } from '../hooks/useAvatar';
-import { useName } from '../hooks/useName';
 import { Avatar } from './Avatar';
 import { Badge } from './Badge';
-import { useIdentityContext } from './IdentityProvider';
 
 function mock<T>(func: T) {
-  return func as vi.Mock;
+  return func as Mock;
 }
 
-const silenceError = () => {
-  const consoleErrorMock = vi
-    .spyOn(console, 'error')
-    .mockImplementation(() => {});
-  return () => consoleErrorMock.mockRestore();
-};
-vi.mock('../../useOnchainKit', () => ({
+vi.mock('@/useOnchainKit', () => ({
   useOnchainKit: vi.fn(),
 }));
 
-vi.mock('../hooks/useAttestations', () => ({
+vi.mock('@/identity/hooks/useAttestations', () => ({
   useAttestations: vi.fn(),
 }));
 
-vi.mock('../hooks/useAvatar', () => ({
+vi.mock('@/identity/hooks/useAvatar', () => ({
   useAvatar: vi.fn(),
 }));
 
-vi.mock('../hooks/useName', () => ({
+vi.mock('@/identity/hooks/useName', () => ({
   useName: vi.fn(),
 }));
 
-vi.mock('./IdentityProvider', () => ({
+vi.mock('@/identity/components/IdentityProvider', () => ({
   useIdentityContext: vi.fn(),
 }));
 
@@ -54,26 +48,29 @@ describe('Avatar Component', () => {
     vi.clearAllMocks();
   });
 
-  it('should throw an error when no address is provided', () => {
-    useIdentityContextMock.mockReturnValue({ address: null });
-    const restore = silenceError();
-    expect(() => {
-      render(<Avatar />);
-    }).toThrow(
+  it('should console.error and return null when no address is provided', () => {
+    vi.mocked(useIdentityContext).mockReturnValue({
+      // @ts-expect-error
+      address: undefined,
+      chain: undefined,
+    });
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    const { container } = render(<Avatar />);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Avatar: an Ethereum address must be provided to the Identity or Avatar component.',
     );
-    restore();
+    expect(container.firstChild).toBeNull();
   });
 
   it('should display loading indicator when loading', async () => {
     useIdentityContextMock.mockReturnValue({ address: null });
     useAvatarMock.mockReturnValue({ data: null, isLoading: true });
     useNameMock.mockReturnValue({ data: null, isLoading: true });
-
     render(<Avatar address={testAvatarComponentAddress} />);
-
     await waitFor(() => {
-      const svgElement = screen.getByTestId('ockAvatarLoadingSvg');
+      const svgElement = screen.getByTestId('ock-defaultLoadingSVG');
       expect(svgElement).toBeInTheDocument();
     });
   });
@@ -82,11 +79,9 @@ describe('Avatar Component', () => {
     useIdentityContextMock.mockReturnValue({ address: null });
     useAvatarMock.mockReturnValue({ data: null, isLoading: false });
     useNameMock.mockReturnValue({ data: null, isLoading: false });
-
     render(<Avatar address={testAvatarComponentAddress} />);
-
     await waitFor(() => {
-      const defaultAvatarElement = screen.getByTestId('ockAvatarDefaultSvg');
+      const defaultAvatarElement = screen.getByTestId('ock-defaultAvatarSVG');
       expect(defaultAvatarElement).toBeInTheDocument();
     });
   });
@@ -101,11 +96,9 @@ describe('Avatar Component', () => {
       data: 'ens_name',
       isLoading: false,
     });
-
     render(
       <Avatar address={testAvatarComponentAddress} className="custom-class" />,
     );
-
     await waitFor(() => {
       const imgElement = screen.getByTestId('ockAvatar_Image');
       expect(imgElement).toHaveAttribute('src', 'avatar_url');
@@ -119,18 +112,15 @@ describe('Avatar Component', () => {
     useIdentityContextMock.mockReturnValue({ address: null });
     useAvatarMock.mockReturnValue({ data: null, isLoading: true });
     useNameMock.mockReturnValue({ data: null, isLoading: true });
-
     const CustomLoadingComponent = (
       <div data-testid="ockAvatarCustomLoading">Loading...</div>
     );
-
     render(
       <Avatar
         address={testAvatarComponentAddress}
         loadingComponent={CustomLoadingComponent}
       />,
     );
-
     const customLoadingElement = screen.getByTestId('ockAvatarCustomLoading');
     expect(customLoadingElement).toBeInTheDocument();
     expect(customLoadingElement).toHaveTextContent('Loading...');
@@ -140,18 +130,15 @@ describe('Avatar Component', () => {
     useIdentityContextMock.mockReturnValue({ address: null });
     useAvatarMock.mockReturnValue({ data: null, isLoading: false });
     useNameMock.mockReturnValue({ data: null, isLoading: false });
-
     const CustomDefaultComponent = (
       <div data-testid="ockAvatarCustomDefault">Default Avatar</div>
     );
-
     render(
       <Avatar
         address={testAvatarComponentAddress}
         defaultComponent={CustomDefaultComponent}
       />,
     );
-
     const customDefaultElement = screen.getByTestId('ockAvatarCustomDefault');
     expect(customDefaultElement).toBeInTheDocument();
     expect(customDefaultElement).toHaveTextContent('Default Avatar');
@@ -172,13 +159,11 @@ describe('Avatar Component', () => {
       data: 'ens_name',
       isLoading: false,
     });
-
     render(
       <Avatar address={testAvatarComponentAddress}>
         <Badge />
       </Avatar>,
     );
-
     await waitFor(() => {
       const inner = screen.getByTestId('ockAvatar_BadgeContainer');
       expect(inner).toBeInTheDocument();
@@ -191,9 +176,7 @@ describe('Avatar Component', () => {
     useIdentityContextMock.mockReturnValue({
       address: testIdentityProviderAddress,
     });
-
     render(<Avatar />);
-
     expect(useNameMock).toHaveBeenCalledWith({
       address: testIdentityProviderAddress,
     });
@@ -203,9 +186,7 @@ describe('Avatar Component', () => {
     useIdentityContextMock.mockReturnValue({
       address: testIdentityProviderAddress,
     });
-
     render(<Avatar address={testAvatarComponentAddress} />);
-
     expect(useNameMock).toHaveBeenCalledWith({
       address: testAvatarComponentAddress,
     });
@@ -216,9 +197,7 @@ describe('Avatar Component', () => {
       chain: optimism,
       address: testIdentityProviderAddress,
     });
-
     render(<Avatar />);
-
     expect(useNameMock).toHaveBeenCalledWith({
       address: testIdentityProviderAddress,
       chain: optimism,
@@ -230,14 +209,11 @@ describe('Avatar Component', () => {
       chain: optimism,
       address: testIdentityProviderAddress,
     });
-
     useNameMock.mockReturnValue({
       data: 'ens_name',
       isLoading: false,
     });
-
     render(<Avatar chain={baseSepolia} />);
-
     expect(useNameMock).toHaveBeenCalledWith({
       address: testIdentityProviderAddress,
       chain: baseSepolia,

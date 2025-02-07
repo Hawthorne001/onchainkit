@@ -1,31 +1,24 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
-import { getRoundedAmount } from '../../internal/utils/getRoundedAmount';
-import { useGetETHBalance } from '../../wallet/hooks/useGetETHBalance';
+import { useIdentityContext } from '@/identity/components/IdentityProvider';
+import { getRoundedAmount } from '@/internal/utils/getRoundedAmount';
+import { useGetETHBalance } from '@/wallet/hooks/useGetETHBalance';
+import { type Mock, describe, expect, it, vi } from 'vitest';
 import { EthBalance } from './EthBalance';
-import { useIdentityContext } from './IdentityProvider';
 
 function mock<T>(func: T) {
-  return func as vi.Mock;
+  return func as Mock;
 }
 
-const silenceError = () => {
-  const consoleErrorMock = vi
-    .spyOn(console, 'error')
-    .mockImplementation(() => {});
-  return () => consoleErrorMock.mockRestore();
-};
-
-vi.mock('./IdentityProvider', () => ({
+vi.mock('@/identity/components/IdentityProvider', () => ({
   useIdentityContext: vi.fn(),
 }));
 
-vi.mock('../../wallet/hooks/useGetETHBalance', () => ({
+vi.mock('@/wallet/hooks/useGetETHBalance', () => ({
   useGetETHBalance: vi.fn(),
 }));
 
-vi.mock('../../internal/utils/getRoundedAmount', () => ({
+vi.mock('@/internal/utils/getRoundedAmount', () => ({
   getRoundedAmount: vi.fn(),
 }));
 
@@ -35,16 +28,19 @@ const useGetEthBalanceMock = mock(useGetETHBalance);
 describe('EthBalance', () => {
   const testIdentityProviderAddress = '0xIdentityAddress';
   const testEthBalanceComponentAddress = '0xEthBalanceComponentAddress';
-  it('should throw an error if no address is provided', () => {
-    useIdentityContextMock.mockReturnValue({ address: null });
-
-    const restore = silenceError();
-    expect(() =>
-      render(<EthBalance address={undefined} className="" />),
-    ).toThrow(
+  it('should console.error and return null when no address is provided', () => {
+    vi.mocked(useIdentityContext).mockReturnValue({
+      // @ts-expect-error
+      address: undefined,
+    });
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    const { container } = render(<EthBalance />);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Address: an Ethereum address must be provided to the Identity or EthBalance component.',
     );
-    restore();
+    expect(container.firstChild).toBeNull();
   });
 
   it('should display the balance if provided', () => {
@@ -54,7 +50,7 @@ describe('EthBalance', () => {
       convertedBalance: balance,
       error: null,
     });
-    (getRoundedAmount as vi.Mock).mockReturnValue('1.2346');
+    (getRoundedAmount as Mock).mockReturnValue('1.2346');
 
     render(
       <EthBalance
@@ -91,7 +87,7 @@ describe('EthBalance', () => {
       convertedBalance: balance,
       error: null,
     });
-    (getRoundedAmount as vi.Mock).mockReturnValue('1.2346');
+    (getRoundedAmount as Mock).mockReturnValue('1.2346');
 
     render(<EthBalance className="custom-class" />);
 
@@ -109,7 +105,7 @@ describe('EthBalance', () => {
       convertedBalance: balance,
       error: null,
     });
-    (getRoundedAmount as vi.Mock).mockReturnValue('1.2346');
+    (getRoundedAmount as Mock).mockReturnValue('1.2346');
 
     render(
       <EthBalance

@@ -5,19 +5,17 @@ import { useTransactionContext } from './TransactionProvider';
 export function TransactionSponsor({ className }: TransactionSponsorReact) {
   const {
     errorMessage,
-    hasPaymaster,
+    lifecycleStatus,
+    paymasterUrl,
     receipt,
-    statusWriteContract,
-    statusWriteContracts,
     transactionHash,
     transactionId,
   } = useTransactionContext();
 
   const transactionInProgress = transactionId || transactionHash;
   if (
-    statusWriteContract !== 'idle' ||
-    statusWriteContracts !== 'idle' ||
-    !hasPaymaster ||
+    lifecycleStatus.statusName !== 'init' ||
+    !paymasterUrl ||
     errorMessage ||
     transactionInProgress ||
     receipt

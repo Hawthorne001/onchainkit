@@ -1,15 +1,20 @@
+'use client';
+
 import { useCallback, useState } from 'react';
 import { TextInput } from '../../internal/components/TextInput';
-import { closeSvg } from '../../internal/svg/closeSvg';
+import { useTheme } from '../../internal/hooks/useTheme';
+import { CloseSvg } from '../../internal/svg/closeSvg';
+import { searchIconSvg } from '../../internal/svg/searchIconSvg';
 import { cn, color, placeholder, pressable } from '../../styles/theme';
 import type { TokenSearchReact } from '../types';
-import { SearchIcon } from './SearchIcon';
 
 export function TokenSearch({
   className,
   onChange,
   delayMs = 200,
 }: TokenSearchReact) {
+  const componentTheme = useTheme();
+
   const [value, setValue] = useState('');
 
   const handleClear = useCallback(() => {
@@ -20,10 +25,11 @@ export function TokenSearch({
   return (
     <div className="relative flex items-center">
       <div className="-translate-y-1/2 absolute top-1/2 left-4">
-        <SearchIcon />
+        {searchIconSvg}
       </div>
       <TextInput
         className={cn(
+          componentTheme,
           pressable.alternate,
           color.foreground,
           placeholder.default,
@@ -43,7 +49,7 @@ export function TokenSearch({
           className="-translate-y-1/2 absolute top-1/2 right-4"
           onClick={handleClear}
         >
-          {closeSvg}
+          <CloseSvg />
         </button>
       )}
     </div>

@@ -73,7 +73,7 @@ export const WithBadge: Story = {
 
 export const Base: Story = {
   args: {
-    address: '0xFd3d8ffE248173B710b4e24a7E75ac4424853503',
+    address: '0x8c8F1a1e1bFdb15E7ed562efc84e5A588E68aD73',
     chain: base,
   },
 };
@@ -95,6 +95,20 @@ export const BaseDefaultToMainnet: Story = {
 export const BaseSepoliaDefaultToMainnet: Story = {
   args: {
     address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+    chain: baseSepolia,
+  },
+};
+
+export const BaseDefaultProfile: Story = {
+  args: {
+    address: '0xdb39F11c909bFA976FdC27538152C1a0E4f0fCcA',
+    chain: base,
+  },
+};
+
+export const BaseSepoliaDefaultProfile: Story = {
+  args: {
+    address: '0x8c8F1a1e1bFdb15E7ed562efc84e5A588E68aD73',
     chain: baseSepolia,
   },
 };
